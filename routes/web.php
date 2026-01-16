@@ -26,10 +26,10 @@ Route::get('/olvide-contraseña', function (Request $request) {
 });
 
 Route::middleware(['auth'])->group(function () {
-    Route::get('/confirmar-contraseña', [ConfirmPasswordController::class, 'show'])->name('password.confirm');
+    Route::get('/confirmar-contraseña', [ConfirmPasswordController::class, 'show'])->name('password.confirm.show');
     Route::post('/confirmar-contraseña', [ConfirmPasswordController::class, 'store'])
         ->middleware('throttle:6,1')
-        ->name('password.confirm.store');
+        ->name('password.confirm.show.store');
 });
 
 Route::middleware(['auth'])->group(function () {

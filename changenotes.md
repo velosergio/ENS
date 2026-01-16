@@ -1,5 +1,8 @@
 # Change Notes
 
+## *0.0.3.1*
+- Resuelto conflicto de nombres en rutas generadas por Wayfinder: renombradas rutas personalizadas de confirmación de contraseña (`password.confirm` → `password.confirm.show` y `password.confirm.store` → `password.confirm.show.store`) para evitar colisiones con rutas de Fortify. Build de producción funcionando correctamente.
+
 ## *0.0.3*
 - Implementado módulo de gestión de parejas para roles mango/admin: CRUD completo con búsqueda en tiempo real, filtros por estado y equipo, creación/edición de parejas con datos de él y ella en la misma vista, funcionalidad de retiro y reactivación. Refactorizado Settings/ParejaController para delegar al ParejaController principal. Agregado middleware CheckParejaActiva y nuevos scopes al modelo Pareja (sinMango, buscar). Navegación de Parejas visible solo para mango/admin en header y sidebar.
 
