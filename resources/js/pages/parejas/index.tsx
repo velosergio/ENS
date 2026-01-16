@@ -1,4 +1,4 @@
-import { Head, router } from '@inertiajs/react';
+import { Head, InfiniteScroll, router } from '@inertiajs/react';
 import {
     ChevronDown,
     ChevronUp,
@@ -56,6 +56,8 @@ interface ParejaData {
     numero_equipo: number | null;
     fecha_ingreso: string | null;
     estado: 'activo' | 'retirado';
+    foto_base64: string | null;
+    foto_thumbnail_50: string | null;
     el: UsuarioData | null;
     ella: UsuarioData | null;
 }
@@ -169,24 +171,6 @@ export default function ParejasIndex({
         });
     };
 
-    const handleLoadMore = () => {
-        if (parejas.current_page < parejas.last_page) {
-            const nextUrl = parejas.links.find(
-                (link) => link.label === 'Siguiente' && link.url,
-            )?.url;
-            if (nextUrl) {
-                router.get(
-                    nextUrl,
-                    {},
-                    {
-                        preserveState: true,
-                        preserveScroll: true,
-                        only: ['parejas'],
-                    },
-                );
-            }
-        }
-    };
 
     return (
         <AppLayout breadcrumbs={breadcrumbs}>
@@ -247,16 +231,17 @@ export default function ParejasIndex({
                 </div>
 
                 {/* Lista de parejas */}
-                <div className="flex flex-col gap-4">
-                    {parejas.data.length === 0 ? (
-                        <div className="rounded-lg border bg-card p-12 text-center">
-                            <p className="text-muted-foreground">
-                                No se encontraron parejas con los filtros
-                                aplicados.
-                            </p>
-                        </div>
-                    ) : (
-                        parejas.data.map((pareja) => {
+                <InfiniteScroll data="parejas">
+                    <div className="flex flex-col gap-4">
+                        {parejas.data.length === 0 ? (
+                            <div className="rounded-lg border bg-card p-12 text-center">
+                                <p className="text-muted-foreground">
+                                    No se encontraron parejas con los filtros
+                                    aplicados.
+                                </p>
+                            </div>
+                        ) : (
+                            parejas.data.map((pareja) => {
                             const isExpanded = expandedIds.has(pareja.id);
                             const nombreCompleto = `${
                                 pareja.el?.nombres || ''
@@ -276,6 +261,22 @@ export default function ParejasIndex({
                                         <CollapsibleTrigger asChild>
                                             <div className="flex w-full cursor-pointer items-center justify-between p-4 hover:bg-muted/50 transition-colors">
                                                 <div className="flex flex-1 items-center gap-4">
+                                                    {/* Foto de la pareja - usando thumbnail de 50x50 */}
+                                                    {pareja.foto_thumbnail_50 ? (
+                                                        <div className="flex-shrink-0">
+                                                            <img
+                                                                src={pareja.foto_thumbnail_50}
+                                                                alt={nombreCompleto || 'Foto de pareja'}
+                                                                className="size-16 rounded-lg object-cover border"
+                                                            />
+                                                        </div>
+                                                    ) : (
+                                                        <div className="flex-shrink-0 flex items-center justify-center size-16 rounded-lg bg-muted border">
+                                                            <span className="text-2xl text-muted-foreground">
+                                                                👫
+                                                            </span>
+                                                        </div>
+                                                    )}
                                                     <div className="flex flex-1 flex-col gap-1">
                                                         <div className="flex items-center gap-2">
                                                             <span className="font-semibold text-foreground">
@@ -486,21 +487,10 @@ export default function ParejasIndex({
                                     </div>
                                 </Collapsible>
                             );
-                        })
-                    )}
-
-                    {/* Cargar más (scroll infinito) */}
-                    {parejas.current_page < parejas.last_page && (
-                        <div className="flex justify-center">
-                            <Button
-                                variant="outline"
-                                onClick={handleLoadMore}
-                            >
-                                Cargar más parejas
-                            </Button>
-                        </div>
-                    )}
-                </div>
+                            })
+                        )}
+                    </div>
+                </InfiniteScroll>
             </div>
         </AppLayout>
     );

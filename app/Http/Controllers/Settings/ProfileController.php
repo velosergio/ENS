@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Settings;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Settings\ProfileDeleteRequest;
 use App\Http\Requests\Settings\ProfileUpdateRequest;
+use App\Services\ImageService;
 use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -14,6 +15,9 @@ use Inertia\Response;
 
 class ProfileController extends Controller
 {
+    public function __construct(
+        protected ImageService $imageService,
+    ) {}
     /**
      * Show the user's profile settings page.
      */
@@ -43,13 +47,24 @@ class ProfileController extends Controller
      */
     public function update(ProfileUpdateRequest $request): RedirectResponse
     {
-        $request->user()->fill($request->validated());
+        $user = $request->user();
+        $user->fill($request->validated());
 
-        if ($request->user()->isDirty('email')) {
-            $request->user()->email_verified_at = null;
+        // Generar thumbnails si se actualiza la foto
+        $fotoBase64 = $request->foto_base64 ?? $user->foto_base64;
+        if ($fotoBase64 !== $user->foto_base64) {
+            $thumbnails = $this->imageService->generateThumbnails($fotoBase64);
+            $user->foto_base64 = $fotoBase64;
+            $user->foto_thumbnail_50 = $thumbnails['50'];
+            $user->foto_thumbnail_100 = $thumbnails['100'];
+            $user->foto_thumbnail_500 = $thumbnails['500'];
         }
 
-        $request->user()->save();
+        if ($user->isDirty('email')) {
+            $user->email_verified_at = null;
+        }
+
+        $user->save();
 
         return to_route('profile.edit');
     }

@@ -1,5 +1,12 @@
 # Change Notes
 
+## *0.0.3.2*
+- Implementado sistema de thumbnails para optimización de imágenes: generación automática de 3 tamaños (50x50, 100x100, 500x500) para todas las fotos subidas (pareja, él, ella). Thumbnails generados automáticamente en registro público, módulo de parejas y configuraciones. Migración actualizada para incluir campos de thumbnails en tablas `parejas` y `users`.
+- Optimización de rendimiento: lista de parejas (`/parejas`) ahora usa thumbnails de 50x50 en lugar de imágenes completas, mejorando significativamente los tiempos de carga. Implementado scroll infinito automático usando componente `<InfiniteScroll>` de Inertia v2.
+- Mejoras de UI: foto de pareja agregada a la izquierda de cada card en la lista de parejas. Avatar del usuario en header y sidebar ahora muestra thumbnail de 50x50 en lugar de iniciales cuando hay foto disponible.
+- Servicio ImageService creado para procesamiento de imágenes: redimensionamiento automático manteniendo proporciones, soporte para PNG (con transparencia), JPEG, GIF y WebP. Thumbnails guardados en base64 en la base de datos.
+- Seeder de prueba: creado ParejasSeeder para generar 50 parejas con usuarios para pruebas de scroll infinito y rendimiento.
+
 ## *0.0.3.1.1*
 - Corregidos tests fallidos: actualizado PasswordConfirmationTest para usar `password.confirm.show`, DashboardTest y PasswordConfirmationTest para redirección a `iniciar-sesion`, RegistrationTest actualizado para registro de parejas con datos de él y ella, ProfileUpdateTest actualizado con campos requeridos (`nombres`, `apellidos`, `celular`, `fecha_nacimiento`, `sexo`), ParejasTest ajustado para reflejar que admin/mango pueden ver parejas con usuarios mango. Todos los tests pasando (62 tests, 235 aserciones).
 

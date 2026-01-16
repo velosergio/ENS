@@ -182,9 +182,11 @@ export function AppHeader({ breadcrumbs = [] }: AppHeaderProps) {
                                             src={auth.user.avatar}
                                             alt={getUserFullName(auth.user)}
                                         />
-                                        <AvatarFallback className="rounded-lg bg-neutral-200 text-black dark:bg-neutral-700 dark:text-white">
-                                            {getInitials(auth.user)}
-                                        </AvatarFallback>
+                                        {!auth.user.avatar && (
+                                            <AvatarFallback className="rounded-lg bg-neutral-200 text-black dark:bg-neutral-700 dark:text-white">
+                                                {getInitials(auth.user)}
+                                            </AvatarFallback>
+                                        )}
                                     </Avatar>
                                 </Button>
                             </DropdownMenuTrigger>

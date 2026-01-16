@@ -20,6 +20,9 @@ class Pareja extends Model
         'fecha_ingreso',
         'numero_equipo',
         'foto_base64',
+        'foto_thumbnail_50',
+        'foto_thumbnail_100',
+        'foto_thumbnail_500',
         'estado',
     ];
 

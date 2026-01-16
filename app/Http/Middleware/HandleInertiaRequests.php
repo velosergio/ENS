@@ -39,11 +39,20 @@ class HandleInertiaRequests extends Middleware
         $user = $request->user();
         $permissionService = app(PermissionService::class);
 
+        $userData = null;
+        if ($user) {
+            $user->load('pareja.usuarios');
+            $userData = [
+                ...$user->toArray(),
+                'avatar' => $user->foto_thumbnail_50,
+            ];
+        }
+
         return [
             ...parent::share($request),
             'name' => config('app.name'),
             'auth' => [
-                'user' => $user?->load('pareja.usuarios'),
+                'user' => $userData,
                 'permissions' => $user ? $permissionService->getUserPermissions($user) : [],
             ],
             'sidebarOpen' => ! $request->hasCookie('sidebar_state') || $request->cookie('sidebar_state') === 'true',

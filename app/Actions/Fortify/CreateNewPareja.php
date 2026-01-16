@@ -5,6 +5,7 @@ namespace App\Actions\Fortify;
 use App\Concerns\PasswordValidationRules;
 use App\Models\Pareja;
 use App\Models\User;
+use App\Services\ImageService;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Validator;
 use Laravel\Fortify\Contracts\CreatesNewUsers;
@@ -12,6 +13,10 @@ use Laravel\Fortify\Contracts\CreatesNewUsers;
 class CreateNewPareja implements CreatesNewUsers
 {
     use PasswordValidationRules;
+
+    public function __construct(
+        protected ImageService $imageService,
+    ) {}
 
     /**
      * Validar y crear una nueva pareja con sus dos usuarios.
@@ -45,12 +50,25 @@ class CreateNewPareja implements CreatesNewUsers
         ])->validate();
 
         return DB::transaction(function () use ($input) {
+            // Generar thumbnails para la foto de la pareja
+            $parejaThumbnails = $this->imageService->generateThumbnails(
+                $input['pareja_foto_base64'] ?? null,
+            );
+
             // Crear la pareja
             $pareja = Pareja::create([
                 'fecha_ingreso' => $input['fecha_ingreso'],
                 'numero_equipo' => isset($input['numero_equipo']) && $input['numero_equipo'] !== '' ? (int) $input['numero_equipo'] : null,
                 'foto_base64' => $input['pareja_foto_base64'] ?? null,
+                'foto_thumbnail_50' => $parejaThumbnails['50'],
+                'foto_thumbnail_100' => $parejaThumbnails['100'],
+                'foto_thumbnail_500' => $parejaThumbnails['500'],
             ]);
+
+            // Generar thumbnails para la foto de ÉL
+            $elThumbnails = $this->imageService->generateThumbnails(
+                $input['el_foto_base64'] ?? null,
+            );
 
             // Crear usuario ÉL
             $el = User::create([
@@ -61,10 +79,18 @@ class CreateNewPareja implements CreatesNewUsers
                 'sexo' => 'masculino',
                 'email' => $input['el_email'],
                 'foto_base64' => $input['el_foto_base64'] ?? null,
+                'foto_thumbnail_50' => $elThumbnails['50'],
+                'foto_thumbnail_100' => $elThumbnails['100'],
+                'foto_thumbnail_500' => $elThumbnails['500'],
                 'password' => $input['password'],
                 'pareja_id' => $pareja->id,
                 'rol' => 'equipista', // Rol por defecto
             ]);
+
+            // Generar thumbnails para la foto de ELLA
+            $ellaThumbnails = $this->imageService->generateThumbnails(
+                $input['ella_foto_base64'] ?? null,
+            );
 
             // Crear usuario ELLA
             $ella = User::create([
@@ -75,6 +101,9 @@ class CreateNewPareja implements CreatesNewUsers
                 'sexo' => 'femenino',
                 'email' => $input['ella_email'],
                 'foto_base64' => $input['ella_foto_base64'] ?? null,
+                'foto_thumbnail_50' => $ellaThumbnails['50'],
+                'foto_thumbnail_100' => $ellaThumbnails['100'],
+                'foto_thumbnail_500' => $ellaThumbnails['500'],
                 'password' => $input['password'],
                 'pareja_id' => $pareja->id,
                 'rol' => 'equipista', // Rol por defecto
