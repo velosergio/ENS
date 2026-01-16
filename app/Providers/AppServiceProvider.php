@@ -7,6 +7,7 @@ use Carbon\CarbonImmutable;
 use Illuminate\Support\Facades\Date;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Gate;
+use Illuminate\Support\Facades\URL;
 use Illuminate\Support\ServiceProvider;
 use Illuminate\Validation\Rules\Password;
 
@@ -27,6 +28,7 @@ class AppServiceProvider extends ServiceProvider
     {
         $this->configureDefaults();
         $this->configureGates();
+        $this->forceHttps();
     }
 
     protected function configureDefaults(): void
@@ -75,5 +77,15 @@ class AppServiceProvider extends ServiceProvider
         Gate::define('role.mango', fn ($user) => $user->esMango());
         Gate::define('role.admin', fn ($user) => $user->esAdmin() || $user->esMango());
         Gate::define('role.equipista', fn ($user) => $user->esEquipista() || $user->esAdmin() || $user->esMango());
+    }
+
+    /**
+     * Forzar HTTPS en producción cuando la petición viene por HTTPS.
+     */
+    protected function forceHttps(): void
+    {
+        if ((app()->isProduction() && request()->secure()) || config('app.force_https', false)) {
+            URL::forceScheme('https');
+        }
     }
 }

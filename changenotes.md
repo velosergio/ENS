@@ -1,5 +1,8 @@
 # Change Notes
 
+## *0.0.4.2*
+- **Corrección de Mixed Content en producción**: Agregada configuración de proxies (`trustProxies`) en `bootstrap/app.php` para detectar correctamente HTTPS cuando la aplicación está detrás de un proxy. Implementada lógica en `AppServiceProvider` para forzar HTTPS en producción cuando las peticiones vienen por HTTPS. Agregada opción de configuración `force_https` en `config/app.php`. Esto corrige el error "Mixed Content" donde la página carga por HTTPS pero las peticiones XMLHttpRequest se hacían por HTTP.
+
 ## *0.0.4.1*
 - **Limpieza de tests**: Eliminados tests de ejemplo (`ExampleTest.php` en Feature y Unit) que venían por defecto con el proyecto. Actualizado `phpunit.xml` para remover la referencia al testsuite "Unit" ya que el directorio está vacío, corrigiendo error en GitHub Actions. Todos los tests pasando (86 tests, 337 aserciones).
 
