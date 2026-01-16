@@ -29,9 +29,14 @@ export default function Welcome({
                             alt="Equipos de Nuestra Señora"
                             className="h-auto w-full max-w-xs"
                         />
-                        <h1 className="text-3xl font-bold text-foreground">
-                            Equipos de Nuestra Señora
-                        </h1>
+                        <div className="flex w-full max-w-xs flex-col items-center gap-2">
+                            <h1 className="text-xl sm:text-2xl font-bold text-foreground whitespace-nowrap">
+                                Equipos de Nuestra Señora
+                            </h1>
+                            <p className="text-base sm:text-lg text-muted-foreground">
+                                Sector Sabanas 2
+                            </p>
+                        </div>
                     </div>
 
                     <div className="flex w-full flex-col gap-4 sm:flex-row sm:justify-center">

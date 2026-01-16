@@ -27,7 +27,8 @@ interface UsuarioData {
     email: string;
     celular: string | null;
     fecha_nacimiento: string | null;
-    foto_base64: string | null;
+    foto_url: string | null;
+    foto_thumbnail_50: string | null;
 }
 
 interface EquipoData {
@@ -40,7 +41,8 @@ interface ParejaData {
     fecha_ingreso: string | null;
     equipo_id: number | null;
     equipo: EquipoData | null;
-    pareja_foto_base64: string | null;
+    pareja_foto_url: string | null;
+    foto_thumbnail_50: string | null;
     estado: 'activo' | 'retirado';
     el: UsuarioData | null;
     ella: UsuarioData | null;
@@ -78,25 +80,20 @@ export default function ParejasEdit({
 
     const today = new Date().toISOString().split('T')[0];
 
-    // Estados para las fotos
+    // Estados para las fotos: preview puede ser URL (del backend) o base64 (nueva subida)
     const [elFotoPreview, setElFotoPreview] = useState<string | null>(
-        parejaProp.el?.foto_base64 || null,
+        parejaProp.el?.foto_url || null,
     );
     const [ellaFotoPreview, setEllaFotoPreview] = useState<string | null>(
-        parejaProp.ella?.foto_base64 || null,
+        parejaProp.ella?.foto_url || null,
     );
     const [parejaFotoPreview, setParejaFotoPreview] = useState<string | null>(
-        parejaProp.pareja_foto_base64 || null,
+        parejaProp.pareja_foto_url || null,
     );
-    const [elFotoBase64, setElFotoBase64] = useState<string | null>(
-        parejaProp.el?.foto_base64 || null,
-    );
-    const [ellaFotoBase64, setEllaFotoBase64] = useState<string | null>(
-        parejaProp.ella?.foto_base64 || null,
-    );
-    const [parejaFotoBase64, setParejaFotoBase64] = useState<string | null>(
-        parejaProp.pareja_foto_base64 || null,
-    );
+    // Estados para base64 (solo cuando se sube una nueva imagen)
+    const [elFotoBase64, setElFotoBase64] = useState<string | null>(null);
+    const [ellaFotoBase64, setEllaFotoBase64] = useState<string | null>(null);
+    const [parejaFotoBase64, setParejaFotoBase64] = useState<string | null>(null);
 
     const elFileInputRef = useRef<HTMLInputElement>(null);
     const ellaFileInputRef = useRef<HTMLInputElement>(null);
@@ -114,12 +111,15 @@ export default function ParejasEdit({
                 if (tipo === 'el') {
                     setElFotoPreview(base64);
                     setElFotoBase64(base64);
+                    form.setData('el_foto_base64', base64);
                 } else if (tipo === 'ella') {
                     setEllaFotoPreview(base64);
                     setEllaFotoBase64(base64);
+                    form.setData('ella_foto_base64', base64);
                 } else {
                     setParejaFotoPreview(base64);
                     setParejaFotoBase64(base64);
+                    form.setData('pareja_foto_base64', base64);
                 }
             };
             reader.readAsDataURL(file);
@@ -131,7 +131,7 @@ export default function ParejasEdit({
         fecha_ingreso: parejaProp.fecha_ingreso || '',
         equipo_id: parejaProp.equipo_id ?? null,
         estado: parejaProp.estado,
-        pareja_foto_base64: parejaProp.pareja_foto_base64 || '',
+        pareja_foto_base64: '',
         // ÉL
         el_id: parejaProp.el?.id.toString() || '',
         el_nombres: parejaProp.el?.nombres || '',
@@ -139,7 +139,7 @@ export default function ParejasEdit({
         el_email: parejaProp.el?.email || '',
         el_celular: parejaProp.el?.celular || '',
         el_fecha_nacimiento: parejaProp.el?.fecha_nacimiento || '',
-        el_foto_base64: parejaProp.el?.foto_base64 || '',
+        el_foto_base64: '',
         // ELLA
         ella_id: parejaProp.ella?.id.toString() || '',
         ella_nombres: parejaProp.ella?.nombres || '',
@@ -147,7 +147,7 @@ export default function ParejasEdit({
         ella_email: parejaProp.ella?.email || '',
         ella_celular: parejaProp.ella?.celular || '',
         ella_fecha_nacimiento: parejaProp.ella?.fecha_nacimiento || '',
-        ella_foto_base64: parejaProp.ella?.foto_base64 || '',
+        ella_foto_base64: '',
     });
 
     // Sincronizar fotos base64 con el form data cuando cambian

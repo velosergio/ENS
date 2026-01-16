@@ -24,13 +24,6 @@ import {
 import { edit as parejasEdit } from '@/routes/parejas';
 import { type BreadcrumbItem } from '@/types';
 
-interface ResponsableData {
-    id: number;
-    nombres: string | null;
-    apellidos: string | null;
-    email: string;
-}
-
 interface ParejaResponsableData {
     id: number;
     el: {
@@ -70,21 +63,18 @@ interface PaginatedParejas {
     total: number;
 }
 
-interface UsuarioDisponible {
+interface ParejaDisponible {
     id: number;
-    nombres: string | null;
-    apellidos: string | null;
-    email: string;
-    pareja: {
+    nombre: string;
+    el: {
         id: number;
-        el: {
-            nombres: string | null;
-            apellidos: string | null;
-        } | null;
-        ella: {
-            nombres: string | null;
-            apellidos: string | null;
-        } | null;
+        nombres: string | null;
+        apellidos: string | null;
+    } | null;
+    ella: {
+        id: number;
+        nombres: string | null;
+        apellidos: string | null;
     } | null;
 }
 
@@ -92,14 +82,14 @@ interface EquipoData {
     id: number;
     numero: number;
     consiliario_nombre: string | null;
-    responsable: ResponsableData | null;
+    pareja_responsable_nombre: string | null;
     pareja_responsable: ParejaResponsableData | null;
 }
 
 interface EquiposShowProps {
     equipo: EquipoData;
     parejas: PaginatedParejas;
-    usuarios_disponibles: UsuarioDisponible[];
+    parejas_disponibles: ParejaDisponible[];
 }
 
 const breadcrumbs = (equipoId: number, equipoNumero: number): BreadcrumbItem[] => [
@@ -116,28 +106,22 @@ const breadcrumbs = (equipoId: number, equipoNumero: number): BreadcrumbItem[] =
 export default function EquiposShow({
     equipo: equipoProp,
     parejas,
-    usuarios_disponibles,
+    parejas_disponibles,
 }: EquiposShowProps) {
-    const [responsableId, setResponsableId] = useState(
-        equipoProp.responsable?.id.toString() || 'none',
+    const [parejaId, setParejaId] = useState(
+        equipoProp.pareja_responsable?.id.toString() || 'none',
     );
     const [consiliarioNombre, setConsiliarioNombre] = useState(
         equipoProp.consiliario_nombre || '',
     );
 
-    const nombreResponsable = equipoProp.responsable
-        ? `${equipoProp.responsable.nombres || ''} ${equipoProp.responsable.apellidos || ''}`.trim()
-        : null;
-    const nombreParejaResponsable = equipoProp.pareja_responsable
-        ? `${equipoProp.pareja_responsable.el?.nombres || ''} ${equipoProp.pareja_responsable.el?.apellidos || ''} & ${equipoProp.pareja_responsable.ella?.nombres || ''} ${equipoProp.pareja_responsable.ella?.apellidos || ''}`.trim()
-        : null;
 
     const handleAsignarResponsable = (e: React.FormEvent) => {
         e.preventDefault();
         router.post(
             asignarResponsable({ equipo: equipoProp.id }).url,
             {
-                responsable_id: responsableId === 'none' || !responsableId ? null : parseInt(responsableId, 10),
+                pareja_id: parejaId === 'none' || !parejaId ? null : parseInt(parejaId, 10),
             },
             {
                 preserveScroll: true,
@@ -162,23 +146,25 @@ export default function EquiposShow({
         <AppLayout breadcrumbs={breadcrumbs(equipoProp.id, equipoProp.numero)}>
             <Head title={`Equipo ${equipoProp.numero}`} />
 
-            <div className="flex flex-col gap-6 p-6">
+            <div className="flex flex-col gap-6 p-4 sm:p-6">
                 {/* Header */}
-                <div className="flex items-center gap-4">
-                    <Button variant="ghost" size="icon" asChild>
-                        <Link href={equiposIndex().url}>
-                            <ArrowLeft className="size-4" />
-                        </Link>
-                    </Button>
-                    <div className="flex-1">
-                        <h1 className="text-2xl font-bold text-foreground">
-                            Equipo {equipoProp.numero}
-                        </h1>
-                        <p className="mt-1 text-sm text-muted-foreground">
-                            Información y gestión del equipo
-                        </p>
+                <div className="flex flex-col gap-4 sm:flex-row sm:items-center">
+                    <div className="flex items-center gap-4">
+                        <Button variant="ghost" size="icon" asChild>
+                            <Link href={equiposIndex().url}>
+                                <ArrowLeft className="size-4" />
+                            </Link>
+                        </Button>
+                        <div className="flex-1 min-w-0">
+                            <h1 className="text-xl sm:text-2xl font-bold text-foreground truncate">
+                                Equipo {equipoProp.numero}
+                            </h1>
+                            <p className="mt-1 text-xs sm:text-sm text-muted-foreground">
+                                Información y gestión del equipo
+                            </p>
+                        </div>
                     </div>
-                    <Button variant="outline" asChild>
+                    <Button variant="outline" size="sm" className="w-full sm:w-auto" asChild>
                         <Link href={equiposEdit({ equipo: equipoProp.id }).url}>
                             <Edit className="mr-2 size-4" />
                             Editar
@@ -190,8 +176,8 @@ export default function EquiposShow({
                     {/* Columna principal */}
                     <div className="lg:col-span-2 flex flex-col gap-6">
                         {/* Información General */}
-                        <div className="rounded-lg border bg-card p-6">
-                            <h2 className="mb-4 text-lg font-semibold">
+                        <div className="rounded-lg border bg-card p-4 sm:p-6">
+                            <h2 className="mb-4 text-base sm:text-lg font-semibold">
                                 Información General
                             </h2>
                             <div className="grid gap-4 sm:grid-cols-2">
@@ -213,31 +199,26 @@ export default function EquiposShow({
                                         </p>
                                     </div>
                                 )}
-                                {equipoProp.responsable && (
-                                    <div className="sm:col-span-2">
+                                {equipoProp.pareja_responsable_nombre && (
+                                    <div>
                                         <Label className="text-muted-foreground">
-                                            Responsable
+                                            Pareja Responsable
                                         </Label>
                                         <p className="mt-1 text-lg">
-                                            {nombreResponsable || equipoProp.responsable.email}
+                                            {equipoProp.pareja_responsable_nombre}
                                         </p>
-                                        {nombreParejaResponsable && (
-                                            <p className="mt-1 text-sm text-muted-foreground">
-                                                Pareja: {nombreParejaResponsable}
-                                            </p>
-                                        )}
                                     </div>
                                 )}
                             </div>
                         </div>
 
                         {/* Lista de Parejas */}
-                        <div className="rounded-lg border bg-card p-6">
-                            <div className="mb-4 flex items-center justify-between">
-                                <h2 className="text-lg font-semibold">
+                        <div className="rounded-lg border bg-card p-4 sm:p-6">
+                            <div className="mb-4 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+                                <h2 className="text-base sm:text-lg font-semibold">
                                     Parejas del Equipo
                                 </h2>
-                                <Badge variant="secondary">
+                                <Badge variant="secondary" className="w-fit">
                                     {parejas.total} pareja
                                     {parejas.total !== 1 ? 's' : ''}
                                 </Badge>
@@ -259,9 +240,9 @@ export default function EquiposShow({
                                             return (
                                                 <div
                                                     key={pareja.id}
-                                                    className="flex items-center justify-between rounded-lg border bg-muted/30 p-4"
+                                                    className="flex flex-col gap-3 rounded-lg border bg-muted/30 p-3 sm:flex-row sm:items-center sm:justify-between sm:p-4"
                                                 >
-                                                    <div className="flex items-center gap-4">
+                                                    <div className="flex items-center gap-3 min-w-0 flex-1">
                                                         {pareja.foto_thumbnail_50 ? (
                                                             <img
                                                                 src={
@@ -271,34 +252,34 @@ export default function EquiposShow({
                                                                     nombreCompleto ||
                                                                     'Foto de pareja'
                                                                 }
-                                                                className="size-12 rounded-lg object-cover border"
+                                                                className="size-10 sm:size-12 flex-shrink-0 rounded-lg object-cover border"
                                                             />
                                                         ) : (
-                                                            <div className="flex items-center justify-center size-12 rounded-lg bg-muted border">
-                                                                <span className="text-xl text-muted-foreground">
+                                                            <div className="flex items-center justify-center size-10 sm:size-12 flex-shrink-0 rounded-lg bg-muted border">
+                                                                <span className="text-lg sm:text-xl text-muted-foreground">
                                                                     👫
                                                                 </span>
                                                             </div>
                                                         )}
-                                                        <div>
-                                                            <p className="font-medium">
+                                                        <div className="min-w-0 flex-1">
+                                                            <p className="font-medium truncate text-sm sm:text-base">
                                                                 {nombreCompleto ||
                                                                     'Sin nombre'}
                                                             </p>
-                                                            <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                                                            <div className="flex flex-col gap-1 sm:flex-row sm:items-center sm:gap-2 text-xs sm:text-sm text-muted-foreground">
                                                                 {pareja.el && (
-                                                                    <span>
+                                                                    <span className="truncate">
                                                                         {pareja.el.email}
                                                                     </span>
                                                                 )}
                                                                 {pareja.el &&
                                                                     pareja.ella && (
-                                                                        <span>
+                                                                        <span className="hidden sm:inline">
                                                                             •
                                                                         </span>
                                                                     )}
                                                                 {pareja.ella && (
-                                                                    <span>
+                                                                    <span className="truncate">
                                                                         {
                                                                             pareja.ella.email
                                                                         }
@@ -310,6 +291,7 @@ export default function EquiposShow({
                                                     <Button
                                                         variant="outline"
                                                         size="sm"
+                                                        className="w-full sm:w-auto"
                                                         asChild
                                                     >
                                                         <Link
@@ -332,68 +314,59 @@ export default function EquiposShow({
 
                     {/* Columna lateral - Configuraciones */}
                     <div className="flex flex-col gap-6">
-                        {/* Asignar Responsable */}
-                        <div className="rounded-lg border bg-card p-6">
-                            <h3 className="mb-4 flex items-center gap-2 text-lg font-semibold">
-                                <UserPlus className="size-5" />
-                                Asignar Responsable
+                        {/* Asignar Pareja Responsable */}
+                        <div className="rounded-lg border bg-card p-4 sm:p-6">
+                            <h3 className="mb-4 flex items-center gap-2 text-base sm:text-lg font-semibold">
+                                <UserPlus className="size-4 sm:size-5" />
+                                Asignar Pareja Responsable
                             </h3>
                             <form
                                 onSubmit={handleAsignarResponsable}
                                 className="space-y-4"
                             >
                                 <div className="grid gap-2">
-                                    <Label htmlFor="responsable_id">
-                                        Seleccionar Responsable
+                                    <Label htmlFor="pareja_id">
+                                        Seleccionar Pareja Responsable
                                     </Label>
                                     <Select
-                                        value={responsableId || 'none'}
-                                        onValueChange={setResponsableId}
+                                        value={parejaId || 'none'}
+                                        onValueChange={setParejaId}
                                     >
                                         <SelectTrigger>
-                                            <SelectValue placeholder="Sin responsable" />
+                                            <SelectValue placeholder="Sin pareja responsable" />
                                         </SelectTrigger>
                                         <SelectContent>
                                             <SelectItem value="none">
-                                                Sin responsable
+                                                Sin pareja responsable
                                             </SelectItem>
-                                            {usuarios_disponibles.map(
-                                                (usuario) => {
-                                                    const nombreCompleto = `${usuario.nombres || ''} ${usuario.apellidos || ''}`.trim();
-                                                    const parejaNombre = usuario.pareja
-                                                        ? `${usuario.pareja.el?.nombres || ''} ${usuario.pareja.el?.apellidos || ''} & ${usuario.pareja.ella?.nombres || ''} ${usuario.pareja.ella?.apellidos || ''}`.trim()
-                                                        : null;
-
-                                                    return (
-                                                        <SelectItem
-                                                            key={usuario.id}
-                                                            value={usuario.id.toString()}
-                                                        >
-                                                            {nombreCompleto ||
-                                                                usuario.email}
-                                                            {parejaNombre &&
-                                                                ` (${parejaNombre})`}
-                                                        </SelectItem>
-                                                    );
-                                                },
+                                            {parejas_disponibles.map(
+                                                (pareja) => (
+                                                    <SelectItem
+                                                        key={pareja.id}
+                                                        value={pareja.id.toString()}
+                                                    >
+                                                        {pareja.nombre}
+                                                    </SelectItem>
+                                                ),
                                             )}
                                         </SelectContent>
                                     </Select>
                                     <p className="text-xs text-muted-foreground">
-                                        Al asignar un responsable, la pareja
-                                        será ascendida automáticamente a admin
+                                        Al asignar una pareja responsable, ambos
+                                        usuarios serán ascendidos automáticamente
+                                        a admin
                                     </p>
                                 </div>
                                 <Button type="submit" className="w-full">
-                                    Asignar Responsable
+                                    Asignar Pareja Responsable
                                 </Button>
                             </form>
                         </div>
 
                         {/* Padre Consiliario */}
-                        <div className="rounded-lg border bg-card p-6">
-                            <h3 className="mb-4 flex items-center gap-2 text-lg font-semibold">
-                                <Users className="size-5" />
+                        <div className="rounded-lg border bg-card p-4 sm:p-6">
+                            <h3 className="mb-4 flex items-center gap-2 text-base sm:text-lg font-semibold">
+                                <Users className="size-4 sm:size-5" />
                                 Padre Consiliario
                             </h3>
                             <form

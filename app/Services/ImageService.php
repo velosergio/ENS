@@ -2,36 +2,59 @@
 
 namespace App\Services;
 
+use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Str;
+
 class ImageService
 {
     /**
-     * Generar thumbnails desde una imagen en base64.
+     * Guardar imagen desde base64 y generar thumbnails.
      *
      * @param  string|null  $base64Image  Imagen en formato base64
-     * @return array<string, string|null> Array con los thumbnails: ['50' => base64, '100' => base64, '500' => base64]
+     * @param  string  $folder  Carpeta donde guardar (ej: 'parejas', 'users')
+     * @param  string|null  $oldPath  Path de la imagen anterior para eliminarla
+     * @return array<string, string|null> Array con paths: ['original' => path, '50' => path, '100' => path, '500' => path]
      */
-    public function generateThumbnails(?string $base64Image): array
+    public function saveImageFromBase64(?string $base64Image, string $folder = 'images', ?string $oldPath = null): array
     {
         if (! $base64Image) {
+            // Si hay una imagen anterior, mantenerla
+            if ($oldPath) {
+                $oldThumbnails = $this->getThumbnailPaths($oldPath);
+
+                return [
+                    'original' => $oldPath,
+                    '50' => $oldThumbnails['50'],
+                    '100' => $oldThumbnails['100'],
+                    '500' => $oldThumbnails['500'],
+                ];
+            }
+
             return [
+                'original' => null,
                 '50' => null,
                 '100' => null,
                 '500' => null,
             ];
         }
 
-        // Extraer los datos de la imagen (remover el prefijo data:image/...;base64,)
+        // Eliminar imagen anterior si existe
+        if ($oldPath) {
+            $this->deleteImage($oldPath);
+        }
+
+        // Extraer los datos de la imagen
         if (preg_match('/^data:image\/(\w+);base64,/', $base64Image, $matches)) {
             $imageType = $matches[1];
             $imageData = base64_decode(preg_replace('/^data:image\/\w+;base64,/', '', $base64Image));
         } else {
-            // Si no tiene prefijo, asumir que es solo base64
             $imageData = base64_decode($base64Image);
             $imageType = $this->detectImageType($imageData);
         }
 
         if (! $imageData) {
             return [
+                'original' => null,
                 '50' => null,
                 '100' => null,
                 '500' => null,
@@ -43,6 +66,7 @@ class ImageService
 
         if (! $sourceImage) {
             return [
+                'original' => null,
                 '50' => null,
                 '100' => null,
                 '500' => null,
@@ -52,42 +76,49 @@ class ImageService
         $originalWidth = imagesx($sourceImage);
         $originalHeight = imagesy($sourceImage);
 
-        $thumbnails = [];
+        // Generar nombre único para la imagen
+        $filename = Str::uuid().'.'.$imageType;
+        $path = $folder.'/'.$filename;
 
-        // Generar thumbnails para cada tamaño
+        // Guardar imagen original
+        $this->saveImageFile($sourceImage, $imageType, $path);
+
+        // Generar y guardar thumbnails
+        $thumbnails = [];
         foreach ([50, 100, 500] as $size) {
-            $thumbnails[(string) $size] = $this->resizeImage(
-                $sourceImage,
-                $originalWidth,
-                $originalHeight,
-                $size,
-                $imageType,
-            );
+            $thumbnailPath = $this->generateThumbnail($sourceImage, $originalWidth, $originalHeight, $size, $imageType, $folder, $filename);
+            $thumbnails[(string) $size] = $thumbnailPath;
         }
 
         imagedestroy($sourceImage);
 
-        return $thumbnails;
+        return [
+            'original' => $path,
+            '50' => $thumbnails['50'],
+            '100' => $thumbnails['100'],
+            '500' => $thumbnails['500'],
+        ];
     }
 
     /**
-     * Redimensionar una imagen a un tamaño específico con crop centrado para hacerla cuadrada.
+     * Generar thumbnail y guardarlo como archivo.
      *
      * @param  resource  $sourceImage  Recurso de imagen GD
      * @param  int  $originalWidth  Ancho original
      * @param  int  $originalHeight  Alto original
      * @param  int  $size  Tamaño del thumbnail (será cuadrado: size x size)
      * @param  string  $imageType  Tipo de imagen (jpeg, png, etc.)
-     * @return string|null Imagen redimensionada en base64 o null si falla
+     * @param  string  $folder  Carpeta donde guardar
+     * @param  string  $originalFilename  Nombre del archivo original
+     * @return string|null Path del thumbnail guardado o null si falla
      */
-    protected function resizeImage($sourceImage, int $originalWidth, int $originalHeight, int $size, string $imageType): ?string
+    protected function generateThumbnail($sourceImage, int $originalWidth, int $originalHeight, int $size, string $imageType, string $folder, string $originalFilename): ?string
     {
         // Calcular dimensiones para crop centrado (siempre cuadrado)
         $newWidth = $size;
         $newHeight = $size;
 
         // Calcular el tamaño de la fuente para el crop
-        // Usamos el lado más pequeño como referencia para mantener la proporción
         $ratio = min($originalWidth / $size, $originalHeight / $size);
         $sourceWidth = (int) ($size * $ratio);
         $sourceHeight = (int) ($size * $ratio);
@@ -121,39 +152,138 @@ class ImageService
             $sourceHeight,
         );
 
-        // Convertir a base64
-        ob_start();
-        switch ($imageType) {
-            case 'png':
-                imagepng($thumbnail);
-                break;
-            case 'gif':
-                imagegif($thumbnail);
-                break;
-            case 'webp':
-                imagewebp($thumbnail);
-                break;
-            default:
-                imagejpeg($thumbnail, null, 85);
-                break;
-        }
-        $imageString = ob_get_contents();
-        ob_end_clean();
+        // Generar nombre del thumbnail
+        $nameWithoutExt = pathinfo($originalFilename, PATHINFO_FILENAME);
+        $thumbnailFilename = $nameWithoutExt.'_'.$size.'.'.$imageType;
+        $thumbnailPath = $folder.'/thumbnails/'.$thumbnailFilename;
+
+        // Guardar thumbnail
+        $this->saveImageFile($thumbnail, $imageType, $thumbnailPath);
 
         imagedestroy($thumbnail);
 
-        if (! $imageString) {
+        return $thumbnailPath;
+    }
+
+    /**
+     * Guardar imagen como archivo en storage.
+     *
+     * @param  resource  $imageResource  Recurso de imagen GD
+     * @param  string  $imageType  Tipo de imagen (jpeg, png, etc.)
+     * @param  string  $path  Path donde guardar
+     */
+    protected function saveImageFile($imageResource, string $imageType, string $path): void
+    {
+        $tempFile = tempnam(sys_get_temp_dir(), 'img_');
+        $tempHandle = fopen($tempFile, 'w');
+
+        switch ($imageType) {
+            case 'png':
+                imagepng($imageResource, $tempFile);
+                break;
+            case 'gif':
+                imagegif($imageResource, $tempFile);
+                break;
+            case 'webp':
+                imagewebp($imageResource, $tempFile);
+                break;
+            default:
+                imagejpeg($imageResource, $tempFile, 85);
+                break;
+        }
+
+        fclose($tempHandle);
+
+        // Guardar en storage público
+        Storage::disk('public')->put($path, file_get_contents($tempFile));
+
+        // Eliminar archivo temporal
+        @unlink($tempFile);
+    }
+
+    /**
+     * Obtener URL pública de una imagen.
+     *
+     * @param  string|null  $path  Path de la imagen
+     * @return string|null URL pública o null si no hay path
+     */
+    public function getImageUrl(?string $path): ?string
+    {
+        if (! $path) {
             return null;
         }
 
-        $mimeType = match ($imageType) {
-            'png' => 'image/png',
-            'gif' => 'image/gif',
-            'webp' => 'image/webp',
-            default => 'image/jpeg',
-        };
+        return Storage::disk('public')->url($path);
+    }
 
-        return 'data:'.$mimeType.';base64,'.base64_encode($imageString);
+    /**
+     * Obtener URLs de thumbnails desde el path original.
+     *
+     * @param  string|null  $originalPath  Path de la imagen original
+     * @return array<string, string|null> Array con URLs: ['50' => url, '100' => url, '500' => url]
+     */
+    public function getThumbnailUrls(?string $originalPath): array
+    {
+        if (! $originalPath) {
+            return [
+                '50' => null,
+                '100' => null,
+                '500' => null,
+            ];
+        }
+
+        $paths = $this->getThumbnailPaths($originalPath);
+
+        return [
+            '50' => $this->getImageUrl($paths['50']),
+            '100' => $this->getImageUrl($paths['100']),
+            '500' => $this->getImageUrl($paths['500']),
+        ];
+    }
+
+    /**
+     * Obtener paths de thumbnails desde el path original.
+     *
+     * @param  string  $originalPath  Path de la imagen original
+     * @return array<string, string|null> Array con paths: ['50' => path, '100' => path, '500' => path]
+     */
+    protected function getThumbnailPaths(string $originalPath): array
+    {
+        $pathInfo = pathinfo($originalPath);
+        $folder = $pathInfo['dirname'];
+        $filename = $pathInfo['filename'];
+        $extension = $pathInfo['extension'] ?? 'jpg';
+
+        return [
+            '50' => $folder.'/thumbnails/'.$filename.'_50.'.$extension,
+            '100' => $folder.'/thumbnails/'.$filename.'_100.'.$extension,
+            '500' => $folder.'/thumbnails/'.$filename.'_500.'.$extension,
+        ];
+    }
+
+    /**
+     * Eliminar imagen y sus thumbnails.
+     *
+     * @param  string|null  $path  Path de la imagen a eliminar
+     */
+    public function deleteImage(?string $path): void
+    {
+        if (! $path) {
+            return;
+        }
+
+        // Eliminar imagen original
+        if (Storage::disk('public')->exists($path)) {
+            Storage::disk('public')->delete($path);
+        }
+
+        // Eliminar thumbnails
+        $thumbnailPaths = $this->getThumbnailPaths($path);
+        foreach ($thumbnailPaths as $thumbnailPath) {
+            if (Storage::disk('public')->exists($thumbnailPath)) {
+                Storage::disk('public')->delete($thumbnailPath);
+            }
+        }
     }
 
     /**

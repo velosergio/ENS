@@ -47,7 +47,7 @@ interface ParejaData {
     fecha_ingreso: string | null;
     equipo_id: number | null;
     equipo: EquipoData | null;
-    foto_base64: string | null;
+    foto_url: string | null;
     estado: 'activo' | 'retirado';
 }
 
@@ -73,7 +73,9 @@ export default function Pareja({
 
     const today = new Date().toISOString().split('T')[0];
 
-    const [fotoBase64, setFotoBase64] = useState<string | null>(parejaProp.foto_base64);
+    // Estado para la foto: puede ser URL (del backend) o base64 (nueva subida)
+    const [fotoPreview, setFotoPreview] = useState<string | null>(parejaProp.foto_url);
+    const [fotoBase64, setFotoBase64] = useState<string | null>(null);
     const fileInputRef = useRef<HTMLInputElement>(null);
 
     const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -83,6 +85,7 @@ export default function Pareja({
             reader.onloadend = () => {
                 const base64String = reader.result as string;
                 setFotoBase64(base64String);
+                setFotoPreview(base64String); // Mostrar la nueva imagen
             };
             reader.readAsDataURL(file);
         }
@@ -213,21 +216,24 @@ export default function Pareja({
                                             onClick={() => fileInputRef.current?.click()}
                                             className="w-full"
                                         >
-                                            {fotoBase64
+                                            {fotoPreview
                                                 ? 'Cambiar Fotografía'
                                                 : 'Subir Fotografía'}
                                         </Button>
-                                        {fotoBase64 && (
+                                        {fotoPreview && (
                                             <div className="relative mt-2 flex justify-center">
                                                 <div className="relative">
                                                     <img
-                                                        src={fotoBase64}
+                                                        src={fotoPreview}
                                                         alt="Preview"
                                                         className="h-32 w-32 rounded-lg object-cover"
                                                     />
                                                     <button
                                                         type="button"
-                                                        onClick={() => setFotoBase64(null)}
+                                                        onClick={() => {
+                                                            setFotoPreview(null);
+                                                            setFotoBase64(null);
+                                                        }}
                                                         className="absolute -right-2 -top-2 flex h-6 w-6 items-center justify-center rounded-full bg-destructive text-destructive-foreground hover:bg-destructive/90"
                                                         aria-label="Eliminar fotografía"
                                                     >

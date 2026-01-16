@@ -3,7 +3,6 @@
 namespace App\Http\Requests;
 
 use Illuminate\Foundation\Http\FormRequest;
-use Illuminate\Validation\Rule;
 
 class EquipoAsignarResponsableRequest extends FormRequest
 {
@@ -25,10 +24,9 @@ class EquipoAsignarResponsableRequest extends FormRequest
         $equipoId = $this->route('equipo')->id ?? null;
 
         return [
-            'responsable_id' => [
+            'pareja_id' => [
                 'nullable',
-                'exists:users,id',
-                Rule::unique('equipos', 'responsable_id')->ignore($equipoId),
+                'exists:parejas,id',
             ],
         ];
     }
@@ -41,8 +39,7 @@ class EquipoAsignarResponsableRequest extends FormRequest
     public function messages(): array
     {
         return [
-            'responsable_id.exists' => 'El responsable seleccionado no existe.',
-            'responsable_id.unique' => 'El usuario seleccionado ya es responsable de otro equipo.',
+            'pareja_id.exists' => 'La pareja seleccionada no existe.',
         ];
     }
 }

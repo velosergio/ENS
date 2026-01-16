@@ -21,7 +21,10 @@ class ParejaFactory extends Factory
         return [
             'fecha_ingreso' => fake()->dateTimeBetween('-10 years', 'now'),
             'equipo_id' => null,
-            'foto_base64' => null,
+            'foto_path' => null,
+            'foto_thumbnail_50' => null,
+            'foto_thumbnail_100' => null,
+            'foto_thumbnail_500' => null,
             'estado' => 'activo',
         ];
     }

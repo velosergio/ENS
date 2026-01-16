@@ -49,13 +49,6 @@ class ParejaUpdateRequest extends FormRequest
      */
     protected function prepareForValidation(): void
     {
-        // Mapear pareja_foto_base64 a foto_base64 para el modelo
-        if ($this->has('pareja_foto_base64')) {
-            $this->merge([
-                'foto_base64' => $this->input('pareja_foto_base64'),
-            ]);
-        }
-
         // Limpiar equipo_id si está vacío
         if ($this->has('equipo_id') && $this->input('equipo_id') === '') {
             $this->merge([

@@ -38,7 +38,7 @@ test('parejas index excludes parejas with mango users for non-admin users', func
     // Usuario equipista no debería ver parejas con mango
     $equipista = User::factory()->equipista()->create();
     $pareja = User::factory()->equipista()->create()->pareja;
-    
+
     // Crear pareja normal
     $parejaNormal = Pareja::factory()
         ->conUsuarios()
@@ -51,7 +51,7 @@ test('parejas index excludes parejas with mango users for non-admin users', func
 
     // Equipista no tiene permiso, pero verificamos que si tuviera, no vería parejas con mango
     // En realidad, equipistas no tienen acceso al índice de parejas por el middleware de permisos
-    
+
     // Admin y mango SÍ pueden ver parejas con usuarios mango
     $admin = User::factory()->admin()->create();
 

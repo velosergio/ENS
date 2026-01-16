@@ -75,8 +75,7 @@ class ParejaController extends Controller
                     ] : null,
                     'fecha_ingreso' => $pareja->fecha_ingreso?->format('Y-m-d'),
                     'estado' => $pareja->estado,
-                    'foto_base64' => $pareja->foto_base64,
-                    'foto_thumbnail_50' => $pareja->foto_thumbnail_50,
+                    'foto_thumbnail_50' => $pareja->foto_thumbnail_50_url,
                     'el' => $el ? [
                         'id' => $el->id,
                         'nombres' => $el->nombres,
@@ -139,25 +138,27 @@ class ParejaController extends Controller
     public function store(ParejaCreateRequest $request): RedirectResponse
     {
         $user = DB::transaction(function () use ($request) {
-            // Generar thumbnails para la foto de la pareja
-            $parejaThumbnails = $this->imageService->generateThumbnails(
+            // Guardar imagen de la pareja y generar thumbnails
+            $parejaImages = $this->imageService->saveImageFromBase64(
                 $request->pareja_foto_base64,
+                'parejas',
             );
 
             // Crear la pareja
             $pareja = Pareja::create([
                 'fecha_ingreso' => $request->fecha_ingreso,
                 'equipo_id' => $request->equipo_id,
-                'foto_base64' => $request->pareja_foto_base64 ?? null,
-                'foto_thumbnail_50' => $parejaThumbnails['50'],
-                'foto_thumbnail_100' => $parejaThumbnails['100'],
-                'foto_thumbnail_500' => $parejaThumbnails['500'],
+                'foto_path' => $parejaImages['original'],
+                'foto_thumbnail_50' => $parejaImages['50'],
+                'foto_thumbnail_100' => $parejaImages['100'],
+                'foto_thumbnail_500' => $parejaImages['500'],
                 'estado' => 'activo',
             ]);
 
-            // Generar thumbnails para la foto de ÉL
-            $elThumbnails = $this->imageService->generateThumbnails(
+            // Guardar imagen de ÉL y generar thumbnails
+            $elImages = $this->imageService->saveImageFromBase64(
                 $request->el_foto_base64,
+                'users',
             );
 
             // Crear usuario ÉL
@@ -168,18 +169,19 @@ class ParejaController extends Controller
                 'fecha_nacimiento' => $request->el_fecha_nacimiento,
                 'sexo' => 'masculino',
                 'email' => $request->el_email,
-                'foto_base64' => $request->el_foto_base64 ?? null,
-                'foto_thumbnail_50' => $elThumbnails['50'],
-                'foto_thumbnail_100' => $elThumbnails['100'],
-                'foto_thumbnail_500' => $elThumbnails['500'],
+                'foto_path' => $elImages['original'],
+                'foto_thumbnail_50' => $elImages['50'],
+                'foto_thumbnail_100' => $elImages['100'],
+                'foto_thumbnail_500' => $elImages['500'],
                 'password' => $request->password,
                 'pareja_id' => $pareja->id,
                 'rol' => 'equipista',
             ]);
 
-            // Generar thumbnails para la foto de ELLA
-            $ellaThumbnails = $this->imageService->generateThumbnails(
+            // Guardar imagen de ELLA y generar thumbnails
+            $ellaImages = $this->imageService->saveImageFromBase64(
                 $request->ella_foto_base64,
+                'users',
             );
 
             // Crear usuario ELLA
@@ -190,10 +192,10 @@ class ParejaController extends Controller
                 'fecha_nacimiento' => $request->ella_fecha_nacimiento,
                 'sexo' => 'femenino',
                 'email' => $request->ella_email,
-                'foto_base64' => $request->ella_foto_base64 ?? null,
-                'foto_thumbnail_50' => $ellaThumbnails['50'],
-                'foto_thumbnail_100' => $ellaThumbnails['100'],
-                'foto_thumbnail_500' => $ellaThumbnails['500'],
+                'foto_path' => $ellaImages['original'],
+                'foto_thumbnail_50' => $ellaImages['50'],
+                'foto_thumbnail_100' => $ellaImages['100'],
+                'foto_thumbnail_500' => $ellaImages['500'],
                 'password' => $request->password,
                 'pareja_id' => $pareja->id,
                 'rol' => 'equipista',
@@ -238,7 +240,7 @@ class ParejaController extends Controller
                     'id' => $pareja->equipo->id,
                     'numero' => $pareja->equipo->numero,
                 ] : null,
-                'pareja_foto_base64' => $pareja->foto_base64,
+                'pareja_foto_url' => $pareja->foto_url,
                 'estado' => $pareja->estado,
                 'el' => $el ? [
                     'id' => $el->id,
@@ -247,7 +249,8 @@ class ParejaController extends Controller
                     'email' => $el->email,
                     'celular' => $el->celular,
                     'fecha_nacimiento' => $el->fecha_nacimiento?->format('Y-m-d'),
-                    'foto_base64' => $el->foto_base64,
+                    'foto_url' => $el->foto_url,
+                    'foto_thumbnail_50' => $el->foto_thumbnail_50_url,
                 ] : null,
                 'ella' => $ella ? [
                     'id' => $ella->id,
@@ -256,7 +259,8 @@ class ParejaController extends Controller
                     'email' => $ella->email,
                     'celular' => $ella->celular,
                     'fecha_nacimiento' => $ella->fecha_nacimiento?->format('Y-m-d'),
-                    'foto_base64' => $ella->foto_base64,
+                    'foto_url' => $ella->foto_url,
+                    'foto_thumbnail_50' => $ella->foto_thumbnail_50_url,
                 ] : null,
             ],
             'equipos' => $equipos,
@@ -269,38 +273,32 @@ class ParejaController extends Controller
     public function update(ParejaUpdateRequest $request, Pareja $pareja): RedirectResponse
     {
         DB::transaction(function () use ($request, $pareja) {
-            // Generar thumbnails si se actualiza la foto de la pareja
-            $parejaFotoBase64 = $request->pareja_foto_base64 ?? $pareja->foto_base64;
-            $parejaThumbnails = $parejaFotoBase64 !== $pareja->foto_base64
-                ? $this->imageService->generateThumbnails($parejaFotoBase64)
-                : [
-                    '50' => $pareja->foto_thumbnail_50,
-                    '100' => $pareja->foto_thumbnail_100,
-                    '500' => $pareja->foto_thumbnail_500,
-                ];
+            // Guardar imagen de la pareja si se actualiza
+            $parejaImages = $this->imageService->saveImageFromBase64(
+                $request->pareja_foto_base64,
+                'parejas',
+                $pareja->foto_path,
+            );
 
             // Actualizar pareja
             $pareja->update([
                 'fecha_ingreso' => $request->fecha_ingreso,
                 'equipo_id' => $request->equipo_id,
-                'foto_base64' => $parejaFotoBase64,
-                'foto_thumbnail_50' => $parejaThumbnails['50'],
-                'foto_thumbnail_100' => $parejaThumbnails['100'],
-                'foto_thumbnail_500' => $parejaThumbnails['500'],
+                'foto_path' => $parejaImages['original'],
+                'foto_thumbnail_50' => $parejaImages['50'],
+                'foto_thumbnail_100' => $parejaImages['100'],
+                'foto_thumbnail_500' => $parejaImages['500'],
                 'estado' => $request->estado,
             ]);
 
             // Actualizar usuario ÉL
             if ($request->el_id) {
                 $el = User::findOrFail($request->el_id);
-                $elFotoBase64 = $request->el_foto_base64 ?? $el->foto_base64;
-                $elThumbnails = $elFotoBase64 !== $el->foto_base64
-                    ? $this->imageService->generateThumbnails($elFotoBase64)
-                    : [
-                        '50' => $el->foto_thumbnail_50,
-                        '100' => $el->foto_thumbnail_100,
-                        '500' => $el->foto_thumbnail_500,
-                    ];
+                $elImages = $this->imageService->saveImageFromBase64(
+                    $request->el_foto_base64,
+                    'users',
+                    $el->foto_path,
+                );
 
                 $el->update([
                     'nombres' => $request->el_nombres,
@@ -308,24 +306,21 @@ class ParejaController extends Controller
                     'celular' => $request->el_celular,
                     'fecha_nacimiento' => $request->el_fecha_nacimiento,
                     'email' => $request->el_email,
-                    'foto_base64' => $elFotoBase64,
-                    'foto_thumbnail_50' => $elThumbnails['50'],
-                    'foto_thumbnail_100' => $elThumbnails['100'],
-                    'foto_thumbnail_500' => $elThumbnails['500'],
+                    'foto_path' => $elImages['original'],
+                    'foto_thumbnail_50' => $elImages['50'],
+                    'foto_thumbnail_100' => $elImages['100'],
+                    'foto_thumbnail_500' => $elImages['500'],
                 ]);
             }
 
             // Actualizar usuario ELLA
             if ($request->ella_id) {
                 $ella = User::findOrFail($request->ella_id);
-                $ellaFotoBase64 = $request->ella_foto_base64 ?? $ella->foto_base64;
-                $ellaThumbnails = $ellaFotoBase64 !== $ella->foto_base64
-                    ? $this->imageService->generateThumbnails($ellaFotoBase64)
-                    : [
-                        '50' => $ella->foto_thumbnail_50,
-                        '100' => $ella->foto_thumbnail_100,
-                        '500' => $ella->foto_thumbnail_500,
-                    ];
+                $ellaImages = $this->imageService->saveImageFromBase64(
+                    $request->ella_foto_base64,
+                    'users',
+                    $ella->foto_path,
+                );
 
                 $ella->update([
                     'nombres' => $request->ella_nombres,
@@ -333,10 +328,10 @@ class ParejaController extends Controller
                     'celular' => $request->ella_celular,
                     'fecha_nacimiento' => $request->ella_fecha_nacimiento,
                     'email' => $request->ella_email,
-                    'foto_base64' => $ellaFotoBase64,
-                    'foto_thumbnail_50' => $ellaThumbnails['50'],
-                    'foto_thumbnail_100' => $ellaThumbnails['100'],
-                    'foto_thumbnail_500' => $ellaThumbnails['500'],
+                    'foto_path' => $ellaImages['original'],
+                    'foto_thumbnail_50' => $ellaImages['50'],
+                    'foto_thumbnail_100' => $ellaImages['100'],
+                    'foto_thumbnail_500' => $ellaImages['500'],
                 ]);
             }
 
@@ -440,7 +435,8 @@ class ParejaController extends Controller
                     'id' => $pareja->equipo->id,
                     'numero' => $pareja->equipo->numero,
                 ] : null,
-                'foto_base64' => $pareja->foto_base64,
+                'foto_url' => $pareja->foto_url,
+                'foto_thumbnail_50' => $pareja->foto_thumbnail_50_url,
                 'estado' => $pareja->estado,
             ],
             'equipos' => $equipos,
@@ -459,24 +455,18 @@ class ParejaController extends Controller
             abort(404, 'Pareja no encontrada');
         }
 
-        // Generar thumbnails si se actualiza la foto
-        $parejaFotoBase64Original = $pareja->foto_base64;
-        $parejaFotoBase64 = $request->pareja_foto_base64 ?? $parejaFotoBase64Original;
-        
+        // Guardar imagen si se actualiza
+        $parejaImages = $this->imageService->saveImageFromBase64(
+            $request->pareja_foto_base64,
+            'parejas',
+            $pareja->foto_path,
+        );
+
         $pareja->fill($request->validated());
-        
-        // Generar thumbnails si la foto cambió y es válida
-        if ($parejaFotoBase64 !== $parejaFotoBase64Original && $parejaFotoBase64 !== null && $parejaFotoBase64 !== '') {
-            $parejaThumbnails = $this->imageService->generateThumbnails($parejaFotoBase64);
-            $pareja->foto_base64 = $parejaFotoBase64;
-            $pareja->foto_thumbnail_50 = $parejaThumbnails['50'];
-            $pareja->foto_thumbnail_100 = $parejaThumbnails['100'];
-            $pareja->foto_thumbnail_500 = $parejaThumbnails['500'];
-        } else {
-            // Si no cambió la foto, mantener las miniaturas actuales
-            $pareja->foto_base64 = $parejaFotoBase64;
-            // Las miniaturas se mantienen automáticamente ya que no se asignan
-        }
+        $pareja->foto_path = $parejaImages['original'];
+        $pareja->foto_thumbnail_50 = $parejaImages['50'];
+        $pareja->foto_thumbnail_100 = $parejaImages['100'];
+        $pareja->foto_thumbnail_500 = $parejaImages['500'];
         $pareja->save();
 
         return to_route('pareja.edit')

@@ -132,7 +132,7 @@ El roadmap está dividido en 10 fases que implementan los módulos del sistema d
 
 ## Fase 3: Módulo Calendario
 
-**Objetivo:** Implementar calendario que muestre eventos, formaciones, cumpleaños y aniversarios.
+**Objetivo:** Implementar calendario que muestre eventos, formaciones, retiro espiritual, cumpleaños y aniversarios.
 
 ### Infraestructura Base:
 - [ ] Revisar y ajustar modelos según necesidades detectadas

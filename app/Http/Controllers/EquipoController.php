@@ -166,7 +166,7 @@ class EquipoController extends Controller
                     'id' => $pareja->id,
                     'fecha_ingreso' => $pareja->fecha_ingreso?->format('Y-m-d'),
                     'estado' => $pareja->estado,
-                    'foto_thumbnail_50' => $pareja->foto_thumbnail_50,
+                    'foto_thumbnail_50' => $pareja->foto_thumbnail_50_url,
                     'el' => $el ? [
                         'id' => $el->id,
                         'nombres' => $el->nombres,
@@ -182,44 +182,55 @@ class EquipoController extends Controller
                 ];
             });
 
-        // Obtener usuarios disponibles para asignar como responsable
-        $usuariosDisponibles = User::query()
-            ->whereIn('rol', ['equipista', 'admin'])
-            ->with('pareja.usuarios')
+        // Obtener parejas disponibles para asignar como responsable
+        // Solo las parejas que pertenecen a este equipo (excluyendo parejas con usuarios mango)
+        $parejasDisponibles = Pareja::query()
+            ->where('equipo_id', $equipo->id)
+            ->where('estado', 'activo')
+            ->sinMango()
+            ->with(['usuarios' => function ($q) {
+                $q->orderBy('sexo');
+            }])
             ->get()
-            ->map(function ($user) {
-                $pareja = $user->pareja;
+            ->map(function ($pareja) {
+                $el = $pareja->el();
+                $ella = $pareja->ella();
+                $nombreEl = $el ? trim(($el->nombres ?? '').' '.($el->apellidos ?? '')) : '';
+                $nombreElla = $ella ? trim(($ella->nombres ?? '').' '.($ella->apellidos ?? '')) : '';
+                $nombreCompleto = trim($nombreEl.' & '.$nombreElla);
 
                 return [
-                    'id' => $user->id,
-                    'nombres' => $user->nombres,
-                    'apellidos' => $user->apellidos,
-                    'email' => $user->email,
-                    'pareja' => $pareja ? [
-                        'id' => $pareja->id,
-                        'el' => $pareja->el() ? [
-                            'nombres' => $pareja->el()->nombres,
-                            'apellidos' => $pareja->el()->apellidos,
-                        ] : null,
-                        'ella' => $pareja->ella() ? [
-                            'nombres' => $pareja->ella()->nombres,
-                            'apellidos' => $pareja->ella()->apellidos,
-                        ] : null,
+                    'id' => $pareja->id,
+                    'nombre' => $nombreCompleto ?: 'Sin nombre',
+                    'el' => $el ? [
+                        'id' => $el->id,
+                        'nombres' => $el->nombres,
+                        'apellidos' => $el->apellidos,
+                    ] : null,
+                    'ella' => $ella ? [
+                        'id' => $ella->id,
+                        'nombres' => $ella->nombres,
+                        'apellidos' => $ella->apellidos,
                     ] : null,
                 ];
             });
+
+        // Formatear nombre de pareja responsable
+        $nombreParejaResponsable = null;
+        if ($parejaResponsable) {
+            $el = $parejaResponsable->el();
+            $ella = $parejaResponsable->ella();
+            $nombreEl = $el ? trim(($el->nombres ?? '').' '.($el->apellidos ?? '')) : '';
+            $nombreElla = $ella ? trim(($ella->nombres ?? '').' '.($ella->apellidos ?? '')) : '';
+            $nombreParejaResponsable = trim($nombreEl.' & '.$nombreElla) ?: null;
+        }
 
         return Inertia::render('equipos/show', [
             'equipo' => [
                 'id' => $equipo->id,
                 'numero' => $equipo->numero,
                 'consiliario_nombre' => $equipo->consiliario_nombre,
-                'responsable' => $equipo->responsable ? [
-                    'id' => $equipo->responsable->id,
-                    'nombres' => $equipo->responsable->nombres,
-                    'apellidos' => $equipo->responsable->apellidos,
-                    'email' => $equipo->responsable->email,
-                ] : null,
+                'pareja_responsable_nombre' => $nombreParejaResponsable,
                 'pareja_responsable' => $parejaResponsable ? [
                     'id' => $parejaResponsable->id,
                     'el' => $parejaResponsable->el() ? [
@@ -233,7 +244,7 @@ class EquipoController extends Controller
                 ] : null,
             ],
             'parejas' => Inertia::scroll($parejas),
-            'usuarios_disponibles' => $usuariosDisponibles,
+            'parejas_disponibles' => $parejasDisponibles,
         ]);
     }
 
@@ -329,19 +340,29 @@ class EquipoController extends Controller
                 $this->degradarResponsable($equipo->responsable_id);
             }
 
+            // Obtener la pareja seleccionada
+            $pareja = null;
+            $responsableId = null;
+
+            if ($request->pareja_id) {
+                $pareja = Pareja::findOrFail($request->pareja_id);
+                // Usar el usuario masculino como responsable_id (o el primero disponible)
+                $responsableId = $pareja->el()?->id ?? $pareja->usuarios()->first()?->id;
+            }
+
             // Asignar nuevo responsable
             $equipo->update([
-                'responsable_id' => $request->responsable_id,
+                'responsable_id' => $responsableId,
             ]);
 
-            // Si se asignó un responsable, ascender a admin
-            if ($request->responsable_id) {
-                $this->ascenderResponsable($request->responsable_id);
+            // Si se asignó una pareja responsable, ascender ambos usuarios a admin
+            if ($pareja && $responsableId) {
+                $this->ascenderResponsable($responsableId);
             }
         });
 
         return redirect()->route('equipos.show', $equipo)
-            ->with('success', 'Responsable asignado exitosamente.');
+            ->with('success', 'Pareja responsable asignada exitosamente.');
     }
 
     /**
@@ -361,6 +382,7 @@ class EquipoController extends Controller
 
     /**
      * Ascender pareja a admin cuando se asigna como responsable.
+     * Asegura que ambos usuarios de la pareja tengan rol admin.
      */
     protected function ascenderResponsable(int $userId): void
     {

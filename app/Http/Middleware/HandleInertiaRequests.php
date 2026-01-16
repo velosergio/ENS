@@ -44,7 +44,7 @@ class HandleInertiaRequests extends Middleware
             $user->load('pareja.usuarios');
             $userData = [
                 ...$user->toArray(),
-                'avatar' => $user->foto_thumbnail_50,
+                'avatar' => $user->foto_thumbnail_50_url,
             ];
         }
 

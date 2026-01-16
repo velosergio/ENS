@@ -15,10 +15,10 @@ return new class extends Migration
         Schema::create('parejas', function (Blueprint $table) {
             $table->id();
             $table->date('fecha_ingreso')->nullable();
-            $table->longText('foto_base64')->nullable();
-            $table->text('foto_thumbnail_50')->nullable();
-            $table->text('foto_thumbnail_100')->nullable();
-            $table->text('foto_thumbnail_500')->nullable();
+            $table->string('foto_path')->nullable();
+            $table->string('foto_thumbnail_50')->nullable();
+            $table->string('foto_thumbnail_100')->nullable();
+            $table->string('foto_thumbnail_500')->nullable();
             $table->enum('estado', ['activo', 'retirado'])->default('activo');
             $table->timestamps();
         });
@@ -31,10 +31,10 @@ return new class extends Migration
             $table->string('celular', 20)->nullable();
             $table->date('fecha_nacimiento')->nullable();
             $table->enum('sexo', ['masculino', 'femenino'])->nullable();
-            $table->longText('foto_base64')->nullable();
-            $table->text('foto_thumbnail_50')->nullable();
-            $table->text('foto_thumbnail_100')->nullable();
-            $table->text('foto_thumbnail_500')->nullable();
+            $table->string('foto_path')->nullable();
+            $table->string('foto_thumbnail_50')->nullable();
+            $table->string('foto_thumbnail_100')->nullable();
+            $table->string('foto_thumbnail_500')->nullable();
             $table->foreignId('pareja_id')->nullable()->constrained('parejas')->nullOnDelete();
             $table->enum('rol', ['mango', 'admin', 'equipista'])->default('equipista');
             $table->string('email')->unique();

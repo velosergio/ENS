@@ -3,10 +3,12 @@
 namespace App\Models;
 
 // use Illuminate\Contracts\Auth\MustVerifyEmail;
+use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
+use Illuminate\Support\Facades\Storage;
 use Laravel\Fortify\TwoFactorAuthenticatable;
 
 class User extends Authenticatable
@@ -27,7 +29,7 @@ class User extends Authenticatable
         'celular',
         'fecha_nacimiento',
         'sexo',
-        'foto_base64',
+        'foto_path',
         'foto_thumbnail_50',
         'foto_thumbnail_100',
         'foto_thumbnail_500',
@@ -116,5 +118,45 @@ class User extends Authenticatable
     public function tieneAlgunRol(array $roles): bool
     {
         return in_array($this->rol, $roles);
+    }
+
+    /**
+     * Obtener URL de la foto del usuario.
+     */
+    protected function fotoUrl(): Attribute
+    {
+        return Attribute::make(
+            get: fn () => $this->foto_path ? Storage::disk('public')->url($this->foto_path) : null,
+        );
+    }
+
+    /**
+     * Obtener URL del thumbnail de 50px.
+     */
+    protected function fotoThumbnail50Url(): Attribute
+    {
+        return Attribute::make(
+            get: fn () => $this->foto_thumbnail_50 ? Storage::disk('public')->url($this->foto_thumbnail_50) : null,
+        );
+    }
+
+    /**
+     * Obtener URL del thumbnail de 100px.
+     */
+    protected function fotoThumbnail100Url(): Attribute
+    {
+        return Attribute::make(
+            get: fn () => $this->foto_thumbnail_100 ? Storage::disk('public')->url($this->foto_thumbnail_100) : null,
+        );
+    }
+
+    /**
+     * Obtener URL del thumbnail de 500px.
+     */
+    protected function fotoThumbnail500Url(): Attribute
+    {
+        return Attribute::make(
+            get: fn () => $this->foto_thumbnail_500 ? Storage::disk('public')->url($this->foto_thumbnail_500) : null,
+        );
     }
 }

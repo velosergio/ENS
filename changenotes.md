@@ -1,5 +1,9 @@
 # Change Notes
 
+## *0.0.4.3*
+- **Migración de imágenes de base64 a almacenamiento local**: Imágenes ahora se guardan como archivos en `storage/app/public` en lugar de base64 en BD. ImageService refactorizado para generar thumbnails como archivos. Migración: `foto_base64` → `foto_path`. Modelos, controladores y frontend actualizados.
+- **Corrección de responsive en vista de detalle de equipos**: Mejorado diseño responsive en `/equipos/{id}` para móviles. Header apilable, padding adaptativo, lista de parejas con layout vertical en móviles, textos truncados, botones de ancho completo en móviles.
+
 ## *0.0.4.2*
 - **Corrección de Mixed Content en producción**: Agregada configuración de proxies (`trustProxies`) en `bootstrap/app.php` para detectar correctamente HTTPS cuando la aplicación está detrás de un proxy. Implementada lógica en `AppServiceProvider` para forzar HTTPS en producción cuando las peticiones vienen por HTTPS. Agregada opción de configuración `force_https` en `config/app.php`. Esto corrige el error "Mixed Content" donde la página carga por HTTPS pero las peticiones XMLHttpRequest se hacían por HTTP.
 

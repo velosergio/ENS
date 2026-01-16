@@ -18,6 +18,7 @@ class ProfileController extends Controller
     public function __construct(
         protected ImageService $imageService,
     ) {}
+
     /**
      * Show the user's profile settings page.
      */
@@ -35,7 +36,7 @@ class ProfileController extends Controller
                 'celular' => $user->celular,
                 'fecha_nacimiento' => $user->fecha_nacimiento?->format('Y-m-d'),
                 'sexo' => $user->sexo,
-                'foto_base64' => $user->foto_base64,
+                'foto_url' => $user->foto_url,
                 'email' => $user->email,
                 'email_verified_at' => $user->email_verified_at,
             ],
@@ -48,19 +49,20 @@ class ProfileController extends Controller
     public function update(ProfileUpdateRequest $request): RedirectResponse
     {
         $user = $request->user();
-        $fotoBase64Original = $user->foto_base64;
-        
+
         $user->fill($request->validated());
 
-        // Generar thumbnails si se actualiza la foto
-        $fotoBase64 = $request->foto_base64 ?? $fotoBase64Original;
-        if ($fotoBase64 !== $fotoBase64Original && $fotoBase64 !== null && $fotoBase64 !== '') {
-            $thumbnails = $this->imageService->generateThumbnails($fotoBase64);
-            $user->foto_base64 = $fotoBase64;
-            $user->foto_thumbnail_50 = $thumbnails['50'];
-            $user->foto_thumbnail_100 = $thumbnails['100'];
-            $user->foto_thumbnail_500 = $thumbnails['500'];
-        }
+        // Guardar imagen si se actualiza
+        $userImages = $this->imageService->saveImageFromBase64(
+            $request->foto_base64,
+            'users',
+            $user->foto_path,
+        );
+
+        $user->foto_path = $userImages['original'];
+        $user->foto_thumbnail_50 = $userImages['50'];
+        $user->foto_thumbnail_100 = $userImages['100'];
+        $user->foto_thumbnail_500 = $userImages['500'];
 
         if ($user->isDirty('email')) {
             $user->email_verified_at = null;
@@ -77,6 +79,11 @@ class ProfileController extends Controller
     public function destroy(ProfileDeleteRequest $request): RedirectResponse
     {
         $user = $request->user();
+
+        // Eliminar imagen del usuario
+        if ($user->foto_path) {
+            $this->imageService->deleteImage($user->foto_path);
+        }
 
         Auth::logout();
 
