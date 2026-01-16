@@ -1,5 +1,5 @@
-import { Link } from '@inertiajs/react';
-import { LayoutGrid } from 'lucide-react';
+import { Link, usePage } from '@inertiajs/react';
+import { LayoutGrid, Users } from 'lucide-react';
 
 import { NavMain } from '@/components/nav-main';
 import { NavUser } from '@/components/nav-user';
@@ -13,19 +13,33 @@ import {
     SidebarMenuItem,
 } from '@/components/ui/sidebar';
 import { dashboard } from '@/routes';
-import { type NavItem } from '@/types';
+import { index as parejasIndex } from '@/routes/parejas';
+import { type NavItem, type SharedData } from '@/types';
 
 import AppLogo from './app-logo';
 
-const mainNavItems: NavItem[] = [
-    {
-        title: 'Panel de control',
-        href: dashboard(),
-        icon: LayoutGrid,
-    },
-];
-
 export function AppSidebar() {
+    const page = usePage<SharedData>();
+    const { auth } = page.props;
+
+    const mainNavItems: NavItem[] = [
+        {
+            title: 'Panel de control',
+            href: dashboard(),
+            icon: LayoutGrid,
+        },
+        // Mostrar Parejas solo si el usuario tiene rol mango o admin
+        ...(auth.user && (auth.user.rol === 'mango' || auth.user.rol === 'admin')
+            ? [
+                  {
+                      title: 'Parejas',
+                      href: parejasIndex(),
+                      icon: Users,
+                  } as NavItem,
+              ]
+            : []),
+    ];
+
     return (
         <Sidebar collapsible="icon" variant="inset">
             <SidebarHeader>

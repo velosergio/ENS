@@ -92,4 +92,32 @@ class Pareja extends Model
     {
         return $this->usuarios()->where('sexo', 'femenino')->first();
     }
+
+    /**
+     * Scope para filtrar parejas que no tienen usuarios con rol mango.
+     */
+    public function scopeSinMango($query)
+    {
+        return $query->whereDoesntHave('usuarios', function ($q) {
+            $q->where('rol', 'mango');
+        });
+    }
+
+    /**
+     * Scope para buscar parejas por término (nombres, emails, número de equipo).
+     */
+    public function scopeBuscar($query, string $termino)
+    {
+        return $query->where(function ($q) use ($termino) {
+            $q->where('numero_equipo', 'like', "%{$termino}%")
+                ->orWhereHas('usuarios', function ($query) use ($termino) {
+                    $query->where(function ($q) use ($termino) {
+                        $q->where('nombres', 'like', "%{$termino}%")
+                            ->orWhere('apellidos', 'like', "%{$termino}%")
+                            ->orWhere('email', 'like', "%{$termino}%")
+                            ->orWhereRaw("CONCAT(nombres, ' ', apellidos) LIKE ?", ["%{$termino}%"]);
+                    });
+                });
+        });
+    }
 }

@@ -14,6 +14,7 @@ Route::middleware(['auth'])->group(function () {
     Route::get('configuracion/perfil', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::patch('configuracion/perfil', [ProfileController::class, 'update'])->name('profile.update');
 
+    // Configuración de pareja propia (Settings/ParejaController delega a ParejaController principal)
     Route::get('configuracion/pareja', [ParejaController::class, 'edit'])->name('pareja.edit');
     Route::patch('configuracion/pareja', [ParejaController::class, 'update'])->name('pareja.update');
     Route::post('configuracion/pareja/retirar', [ParejaController::class, 'retirar'])->name('pareja.retirar');

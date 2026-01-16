@@ -1,5 +1,5 @@
 import { Link, usePage } from '@inertiajs/react';
-import { LayoutGrid, Menu, Search } from 'lucide-react';
+import { LayoutGrid, Menu, Search, Users } from 'lucide-react';
 
 import { Breadcrumbs } from '@/components/breadcrumbs';
 import { Icon } from '@/components/icon';
@@ -29,18 +29,11 @@ import { useInitials } from '@/hooks/use-initials';
 import { getUserFullName } from '@/lib/user-utils';
 import { cn } from '@/lib/utils';
 import { dashboard } from '@/routes';
+import { index as parejasIndex } from '@/routes/parejas';
 import { type BreadcrumbItem, type NavItem, type SharedData } from '@/types';
 
 import AppLogo from './app-logo';
 import AppLogoIcon from './app-logo-icon';
-
-const mainNavItems: NavItem[] = [
-    {
-        title: 'Panel de control',
-        href: dashboard(),
-        icon: LayoutGrid,
-    },
-];
 
 
 const activeItemStyles =
@@ -55,6 +48,25 @@ export function AppHeader({ breadcrumbs = [] }: AppHeaderProps) {
     const { auth } = page.props;
     const getInitials = useInitials();
     const { urlIsActive } = useActiveUrl();
+
+    const mainNavItems: NavItem[] = [
+        {
+            title: 'Panel de control',
+            href: dashboard(),
+            icon: LayoutGrid,
+        },
+        // Mostrar Parejas solo si el usuario tiene rol mango o admin
+        ...(auth.user && (auth.user.rol === 'mango' || auth.user.rol === 'admin')
+            ? [
+                  {
+                      title: 'Parejas',
+                      href: parejasIndex(),
+                      icon: Users,
+                  } as NavItem,
+              ]
+            : []),
+    ];
+
     return (
         <>
             <div className="border-b border-sidebar-border/80">

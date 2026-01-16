@@ -42,4 +42,18 @@ Route::middleware(['auth'])->group(function () {
     })->name('dashboard');
 });
 
+// Módulo de Parejas (mango/admin)
+Route::middleware(['auth', 'permission:parejas,view'])->group(function () {
+    Route::resource('parejas', \App\Http\Controllers\ParejaController::class)
+        ->only(['index', 'create', 'store', 'edit', 'update']);
+
+    Route::post('parejas/{pareja}/retirar', [\App\Http\Controllers\ParejaController::class, 'retirar'])
+        ->middleware('permission:parejas,update')
+        ->name('parejas.retirar');
+
+    Route::post('parejas/{pareja}/reactivar', [\App\Http\Controllers\ParejaController::class, 'reactivar'])
+        ->middleware('permission:parejas,reactivar')
+        ->name('parejas.reactivar');
+});
+
 require __DIR__.'/settings.php';

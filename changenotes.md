@@ -1,5 +1,8 @@
 # Change Notes
 
+## *0.0.3*
+- Implementado módulo de gestión de parejas para roles mango/admin: CRUD completo con búsqueda en tiempo real, filtros por estado y equipo, creación/edición de parejas con datos de él y ella en la misma vista, funcionalidad de retiro y reactivación. Refactorizado Settings/ParejaController para delegar al ParejaController principal. Agregado middleware CheckParejaActiva y nuevos scopes al modelo Pareja (sinMango, buscar). Navegación de Parejas visible solo para mango/admin en header y sidebar.
+
 ## *0.0.2*
 - El registro ahora es de parejas en lugar de usuarios individuales
 - Registro de pareja con datos de ÉL y ELLA (nombres, apellidos, celular, fecha de nacimiento, email, foto, Fecha de ingreso al movimiento agregada al registro, numero del equipo)

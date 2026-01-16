@@ -1,7 +1,7 @@
 import { useCallback } from 'react';
 
-import { type User } from '@/types';
 import { getUserFullName } from '@/lib/user-utils';
+import { type User } from '@/types';
 
 export function useInitials() {
     return useCallback((userOrName: User | string): string => {

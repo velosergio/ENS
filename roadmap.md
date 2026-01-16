@@ -8,43 +8,52 @@ El roadmap está dividido en 10 fases que implementan los módulos del sistema d
 
 ---
 
-## Fase 1: Módulo Usuarios Completo
+## Fase 1: Módulo Parejas
 
-**Objetivo:** Completar el módulo de gestión de usuarios con todas las funcionalidades requeridas.
+**Objetivo:** Completar el módulo de gestión de parejas con todas las funcionalidades requeridas.
 
 ### Infraestructura Base:
-- [ ] Revisar y ajustar modelos User y Pareja según necesidades detectadas
-- [ ] Verificar relaciones básicas
-- [ ] Actualizar migraciones si es necesario
-- [ ] Ajustar factories si hay cambios
+- [x] Revisar y ajustar modelos User y Pareja según necesidades detectadas
+  - Agregados scopes `scopeSinMango()` y `scopeBuscar()` al modelo Pareja
+- [x] Verificar relaciones básicas
+- [x] Actualizar migraciones si es necesario
+- [x] Ajustar factories si hay cambios
+- [x] Agregar middleware `CheckParejaActiva` para validar pareja activa
 
 ### Tareas:
-- [ ] Crear controlador `UserController` (mango/admin)
-  - `index`: Listar usuarios con búsqueda en tiempo real
-  - `create`: Formulario crear usuario (solo parejas, excepto mango)
-  - `store`: Crear usuario/pareja
-  - `edit`: Formulario editar usuario
-  - `update`: Actualizar usuario
-  - `destroy`: Eliminar usuario
-  - `retirar`: Retirar pareja del movimiento
-  - `reactivar`: Reactivar pareja
-- [ ] Form Requests para validación:
-  - `UserCreateRequest`
-  - `UserUpdateRequest`
-- [ ] Páginas frontend:
-  - Lista de usuarios con búsqueda en tiempo real
-  - Formulario crear usuario
-  - Formulario editar usuario
-  - Filtros: nombre, email, equipo, rol, estado
-- [ ] Búsqueda en tiempo real mientras escribe
-- [ ] Agregar permisos `users.*` al `PermissionService`
-- [ ] Tests para gestión de usuarios
+- [x] Crear controlador `ParejaController` (mango/admin)
+  - [x] `index`: Listar parejas con búsqueda en tiempo real y scroll infinito
+  - [x] `create`: Formulario crear pareja (con datos de él y ella)
+  - [x] `store`: Crear pareja con ambos usuarios
+  - [x] `edit`: Formulario editar pareja (datos de pareja y usuarios en la misma vista)
+  - [x] `update`: Actualizar pareja y usuarios
+  - [x] `retirar`: Retirar pareja del movimiento (cierra sesión automáticamente)
+  - [x] `reactivar`: Reactivar pareja cambiando estado
+  - [x] `editSettings`: Método para configuración de pareja propia
+  - [x] `updateSettings`: Actualizar configuración de pareja propia
+  - [x] `retirarSettings`: Retirar pareja propia desde settings
+- [x] Form Requests para validación:
+  - [x] `ParejaCreateRequest`
+  - [x] `ParejaUpdateRequest`
+- [x] Páginas frontend (Disponible para Roles Mango y Admin):
+  - [x] Lista de parejas con búsqueda en tiempo real y scroll infinito
+  - [x] Formulario crear pareja (reutiliza código del registro público)
+  - [x] Formulario editar pareja (datos de pareja y usuarios en la misma vista)
+  - [x] Vista expandible por pareja mostrando nombres completos (Él & Ella), número de equipo y fecha de ingreso
+  - [x] Filtros: estado (activo/retirado), número de equipo
+  - [x] Búsqueda por nombres, emails, número de equipo
+- [x] Búsqueda en tiempo real mientras escribe (implementada con scroll infinito)
+- [x] Refactorizar `Settings/ParejaController` para delegar al `ParejaController` principal
+- [x] Actualizar navegación en header y sidebar para mostrar "Parejas" solo a roles mango/admin
+- [x] Tests para gestión de parejas (ParejasTest.php)
 
 ### Entregables:
-- CRUD completo de usuarios
-- Búsqueda en tiempo real
-- Filtros por nombre, email, equipo, rol, estado
-- Gestión de activación/desactivación (retirar/reactivar)
+- [x] CRUD completo de parejas
+- [x] Búsqueda en tiempo real con scroll infinito
+- [x] Filtros por estado y número de equipo
+- [x] Gestión de activación/desactivación (retirar/reactivar)
+- [x] Vista expandible de parejas con información completa
+- [x] Middleware de validación de pareja activa
 
 ---
 
@@ -493,29 +502,9 @@ Fase 10 (Informes) ─────┘
 
 ## Notas de Implementación
 
-- **Orden sugerido:** Las fases están diseñadas para implementarse secuencialmente, pero algunas pueden trabajarse en paralelo (ej: Fases 9 y 10 pueden empezar después de Fase 6).
-- **Infraestructura Base en cada fase:** Cada fase incluye una sección de "Infraestructura Base" para revisar y ajustar la lógica y composición de la app según los cambios detectados. Es importante completar esta sección antes de pasar a las tareas principales de cada fase.
 - **Testing:** Cada fase debe incluir tests con Pest.
 - **Auditoría:** Todas las acciones importantes deben registrarse automáticamente usando el módulo de Fase 8.
 - **Permisos:** Cada módulo debe agregar sus permisos al `PermissionService`.
 - **Mobile First:** Todas las interfaces deben priorizar dispositivos móviles.
 
 ---
-
-## Detalles Adicionales
-
-### Consiliario por Equipo
-- Agregar campo `consiliario_nombre` a la tabla `parejas` (migración en Fase 2 - Infraestructura Base)
-- El consiliario es uno por equipo
-- Este campo se gestionará en el módulo de Equipos (Fase 2)
-
-### Prioridad de Implementación
-El orden de las fases está diseñado para maximizar el valor incremental y minimizar dependencias bloqueantes. Sin embargo, algunas fases pueden trabajarse en paralelo una vez completadas sus dependencias base.
-
-### Consideraciones Técnicas
-- **Base de datos:** Usar MySQL con índices apropiados para búsquedas en tiempo real
-- **Caché:** Considerar Redis para caché de consultas frecuentes (calendario, notificaciones)
-- **Jobs:** Usar Laravel Queue para procesamiento asíncrono (notificaciones, procesamiento de PDFs)
-- **Storage:** Usar Laravel Storage para archivos (PDFs de guía, fotos en el futuro)
-- **Performance:** Optimizar queries con eager loading para evitar N+1
-- **Seguridad:** Validar permisos en cada acción, usar middleware de autorización
