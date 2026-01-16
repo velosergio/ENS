@@ -18,7 +18,11 @@ test('profile information can be updated', function () {
     $response = $this
         ->actingAs($user)
         ->patch(route('profile.update'), [
-            'name' => 'Test User',
+            'nombres' => 'Test',
+            'apellidos' => 'User',
+            'celular' => '1234567890',
+            'fecha_nacimiento' => '1990-01-01',
+            'sexo' => $user->sexo,
             'email' => 'test@example.com',
         ]);
 
@@ -28,7 +32,8 @@ test('profile information can be updated', function () {
 
     $user->refresh();
 
-    expect($user->name)->toBe('Test User');
+    expect($user->nombres)->toBe('Test');
+    expect($user->apellidos)->toBe('User');
     expect($user->email)->toBe('test@example.com');
     expect($user->email_verified_at)->toBeNull();
 });
@@ -39,7 +44,11 @@ test('email verification status is unchanged when the email address is unchanged
     $response = $this
         ->actingAs($user)
         ->patch(route('profile.update'), [
-            'name' => 'Test User',
+            'nombres' => $user->nombres,
+            'apellidos' => $user->apellidos,
+            'celular' => $user->celular,
+            'fecha_nacimiento' => $user->fecha_nacimiento?->format('Y-m-d'),
+            'sexo' => $user->sexo,
             'email' => $user->email,
         ]);
 

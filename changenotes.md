@@ -1,5 +1,8 @@
 # Change Notes
 
+## *0.0.3.1.1*
+- Corregidos tests fallidos: actualizado PasswordConfirmationTest para usar `password.confirm.show`, DashboardTest y PasswordConfirmationTest para redirección a `iniciar-sesion`, RegistrationTest actualizado para registro de parejas con datos de él y ella, ProfileUpdateTest actualizado con campos requeridos (`nombres`, `apellidos`, `celular`, `fecha_nacimiento`, `sexo`), ParejasTest ajustado para reflejar que admin/mango pueden ver parejas con usuarios mango. Todos los tests pasando (62 tests, 235 aserciones).
+
 ## *0.0.3.1*
 - Resuelto conflicto de nombres en rutas generadas por Wayfinder: renombradas rutas personalizadas de confirmación de contraseña (`password.confirm` → `password.confirm.show` y `password.confirm.store` → `password.confirm.show.store`) para evitar colisiones con rutas de Fortify. Build de producción funcionando correctamente.
 
