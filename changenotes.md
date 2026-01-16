@@ -1,5 +1,8 @@
 # Change Notes
 
+## *0.0.4.3.1*
+- Test Actualizados
+
 ## *0.0.4.3*
 - **Migración de imágenes de base64 a almacenamiento local**: Imágenes ahora se guardan como archivos en `storage/app/public` en lugar de base64 en BD. ImageService refactorizado para generar thumbnails como archivos. Migración: `foto_base64` → `foto_path`. Modelos, controladores y frontend actualizados.
 - **Corrección de responsive en vista de detalle de equipos**: Mejorado diseño responsive en `/equipos/{id}` para móviles. Header apilable, padding adaptativo, lista de parejas con layout vertical en móviles, textos truncados, botones de ancho completo en móviles.

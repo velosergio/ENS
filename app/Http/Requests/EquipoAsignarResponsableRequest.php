@@ -27,6 +27,25 @@ class EquipoAsignarResponsableRequest extends FormRequest
             'pareja_id' => [
                 'nullable',
                 'exists:parejas,id',
+                function ($attribute, $value, $fail) use ($equipoId) {
+                    if ($value) {
+                        // Obtener la pareja
+                        $pareja = \App\Models\Pareja::find($value);
+                        if ($pareja) {
+                            // Obtener el usuario masculino de la pareja (o el primero si no hay masculino)
+                            $usuario = $pareja->usuarios()->where('sexo', 'masculino')->first() ?? $pareja->usuarios->first();
+                            if ($usuario) {
+                                // Verificar si este usuario ya es responsable de otro equipo
+                                $equipoExistente = \App\Models\Equipo::where('responsable_id', $usuario->id)
+                                    ->where('id', '!=', $equipoId)
+                                    ->first();
+                                if ($equipoExistente) {
+                                    $fail('Esta pareja ya es responsable de otro equipo.');
+                                }
+                            }
+                        }
+                    }
+                },
             ],
         ];
     }

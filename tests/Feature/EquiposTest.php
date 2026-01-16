@@ -140,20 +140,19 @@ test('cannot create equipo with duplicate numero', function () {
 
 test('can create equipo with responsable', function () {
     $admin = User::factory()->admin()->create();
-    $pareja = Pareja::factory()->conUsuarios()->create();
-    $usuario = $pareja->usuarios->first();
+    $equipo = Equipo::factory()->create(['numero' => 1]);
+    $pareja = Pareja::factory()->conUsuarios()->create(['equipo_id' => $equipo->id]);
+    $usuario = $pareja->usuarios()->where('sexo', 'masculino')->first() ?? $pareja->usuarios->first();
 
     $data = [
-        'numero' => 1,
-        'responsable_id' => $usuario->id,
-        'consiliario_nombre' => 'Padre Juan',
+        'pareja_id' => $pareja->id,
     ];
 
     $this->actingAs($admin)
-        ->post(route('equipos.store'), $data)
-        ->assertRedirect(route('equipos.index'));
+        ->post(route('equipos.asignar-responsable', $equipo), $data)
+        ->assertRedirect(route('equipos.show', $equipo));
 
-    $equipo = Equipo::where('numero', 1)->first();
+    $equipo->refresh();
     expect($equipo)->not->toBeNull();
     expect($equipo->responsable_id)->toBe($usuario->id);
 
@@ -217,11 +216,11 @@ test('equipo show displays parejas with scroll infinito', function () {
 test('can asignar responsable to equipo', function () {
     $admin = User::factory()->admin()->create();
     $equipo = Equipo::factory()->create();
-    $pareja = Pareja::factory()->conUsuarios()->create();
-    $usuario = $pareja->usuarios->first();
+    $pareja = Pareja::factory()->conUsuarios()->create(['equipo_id' => $equipo->id]);
+    $usuario = $pareja->usuarios()->where('sexo', 'masculino')->first() ?? $pareja->usuarios->first();
 
     $data = [
-        'responsable_id' => $usuario->id,
+        'pareja_id' => $pareja->id,
     ];
 
     $this->actingAs($admin)
@@ -243,17 +242,17 @@ test('asignar responsable degrades previous responsable', function () {
     $equipo = Equipo::factory()->create();
 
     // Crear primera pareja responsable
-    $pareja1 = Pareja::factory()->conUsuarios()->create();
-    $usuario1 = $pareja1->usuarios->first();
+    $pareja1 = Pareja::factory()->conUsuarios()->create(['equipo_id' => $equipo->id]);
+    $usuario1 = $pareja1->usuarios()->where('sexo', 'masculino')->first() ?? $pareja1->usuarios->first();
     $equipo->update(['responsable_id' => $usuario1->id]);
     $pareja1->usuarios()->update(['rol' => 'admin']);
 
     // Crear segunda pareja para nuevo responsable
-    $pareja2 = Pareja::factory()->conUsuarios()->create();
-    $usuario2 = $pareja2->usuarios->first();
+    $pareja2 = Pareja::factory()->conUsuarios()->create(['equipo_id' => $equipo->id]);
+    $usuario2 = $pareja2->usuarios()->where('sexo', 'masculino')->first() ?? $pareja2->usuarios->first();
 
     $data = [
-        'responsable_id' => $usuario2->id,
+        'pareja_id' => $pareja2->id,
     ];
 
     $this->actingAs($admin)
@@ -323,10 +322,19 @@ test('can delete equipo without parejas', function () {
 test('delete equipo degrades responsable if exists', function () {
     $admin = User::factory()->admin()->create();
     $equipo = Equipo::factory()->create();
-    $pareja = Pareja::factory()->conUsuarios()->create();
-    $usuario = $pareja->usuarios->first();
-    $equipo->update(['responsable_id' => $usuario->id]);
-    $pareja->usuarios()->update(['rol' => 'admin']);
+    $pareja = Pareja::factory()->conUsuarios()->create(['equipo_id' => $equipo->id]);
+    $usuario = $pareja->usuarios()->where('sexo', 'masculino')->first() ?? $pareja->usuarios->first();
+    
+    // Asignar responsable
+    $data = [
+        'pareja_id' => $pareja->id,
+    ];
+    $this->actingAs($admin)
+        ->post(route('equipos.asignar-responsable', $equipo), $data)
+        ->assertRedirect(route('equipos.show', $equipo));
+
+    // Eliminar todas las parejas del equipo para poder eliminarlo
+    $equipo->parejas()->update(['equipo_id' => null]);
 
     $this->actingAs($admin)
         ->delete(route('equipos.destroy', $equipo))
@@ -343,30 +351,38 @@ test('cannot asign same responsable to multiple equipos', function () {
     $admin = User::factory()->admin()->create();
     $equipo1 = Equipo::factory()->create();
     $equipo2 = Equipo::factory()->create();
-    $pareja = Pareja::factory()->conUsuarios()->create();
-    $usuario = $pareja->usuarios->first();
+    $pareja1 = Pareja::factory()->conUsuarios()->create(['equipo_id' => $equipo1->id]);
+    $pareja2 = Pareja::factory()->conUsuarios()->create(['equipo_id' => $equipo2->id]);
+    $usuario = $pareja1->usuarios()->where('sexo', 'masculino')->first() ?? $pareja1->usuarios->first();
 
     // Asignar responsable al primer equipo
-    $equipo1->update(['responsable_id' => $usuario->id]);
+    $data1 = [
+        'pareja_id' => $pareja1->id,
+    ];
+    $this->actingAs($admin)
+        ->post(route('equipos.asignar-responsable', $equipo1), $data1)
+        ->assertRedirect(route('equipos.show', $equipo1));
 
-    // Intentar asignar el mismo responsable al segundo equipo
-    $data = [
-        'responsable_id' => $usuario->id,
+    // Intentar asignar la misma pareja al segundo equipo (debería fallar porque la pareja ya está asignada)
+    // Pero primero necesitamos mover la pareja al segundo equipo para que esté disponible
+    $pareja1->update(['equipo_id' => $equipo2->id]);
+
+    $data2 = [
+        'pareja_id' => $pareja1->id,
     ];
 
     $this->actingAs($admin)
-        ->post(route('equipos.asignar-responsable', $equipo2), $data)
-        ->assertSessionHasErrors(['responsable_id']);
+        ->post(route('equipos.asignar-responsable', $equipo2), $data2)
+        ->assertSessionHasErrors(['pareja_id']);
 });
 
 test('equipistas cannot asign responsable', function () {
     $equipista = User::factory()->equipista()->create();
     $equipo = Equipo::factory()->create();
-    $pareja = Pareja::factory()->conUsuarios()->create();
-    $usuario = $pareja->usuarios->first();
+    $pareja = Pareja::factory()->conUsuarios()->create(['equipo_id' => $equipo->id]);
 
     $data = [
-        'responsable_id' => $usuario->id,
+        'pareja_id' => $pareja->id,
     ];
 
     $this->actingAs($equipista)
