@@ -25,7 +25,7 @@ class ParejaUpdateRequest extends FormRequest
         return [
             'fecha_ingreso' => ['required', 'date', 'before_or_equal:today'],
             'equipo_id' => ['nullable', 'exists:equipos,id'],
-            'pareja_foto_base64' => ['nullable', 'string'],
+            'pareja_foto' => ['nullable', 'image', 'max:5120'], // 5MB max
         ];
     }
 

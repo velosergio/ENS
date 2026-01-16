@@ -139,8 +139,8 @@ class ParejaController extends Controller
     {
         $user = DB::transaction(function () use ($request) {
             // Guardar imagen de la pareja y generar thumbnails
-            $parejaImages = $this->imageService->saveImageFromBase64(
-                $request->pareja_foto_base64,
+            $parejaImages = $this->imageService->saveImageFromFile(
+                $request->file('pareja_foto'),
                 'parejas',
             );
 
@@ -156,8 +156,8 @@ class ParejaController extends Controller
             ]);
 
             // Guardar imagen de ÉL y generar thumbnails
-            $elImages = $this->imageService->saveImageFromBase64(
-                $request->el_foto_base64,
+            $elImages = $this->imageService->saveImageFromFile(
+                $request->file('el_foto'),
                 'users',
             );
 
@@ -179,8 +179,8 @@ class ParejaController extends Controller
             ]);
 
             // Guardar imagen de ELLA y generar thumbnails
-            $ellaImages = $this->imageService->saveImageFromBase64(
-                $request->ella_foto_base64,
+            $ellaImages = $this->imageService->saveImageFromFile(
+                $request->file('ella_foto'),
                 'users',
             );
 
@@ -274,8 +274,8 @@ class ParejaController extends Controller
     {
         DB::transaction(function () use ($request, $pareja) {
             // Guardar imagen de la pareja si se actualiza
-            $parejaImages = $this->imageService->saveImageFromBase64(
-                $request->pareja_foto_base64,
+            $parejaImages = $this->imageService->saveImageFromFile(
+                $request->file('pareja_foto'),
                 'parejas',
                 $pareja->foto_path,
             );
@@ -294,8 +294,8 @@ class ParejaController extends Controller
             // Actualizar usuario ÉL
             if ($request->el_id) {
                 $el = User::findOrFail($request->el_id);
-                $elImages = $this->imageService->saveImageFromBase64(
-                    $request->el_foto_base64,
+                $elImages = $this->imageService->saveImageFromFile(
+                    $request->file('el_foto'),
                     'users',
                     $el->foto_path,
                 );
@@ -316,8 +316,8 @@ class ParejaController extends Controller
             // Actualizar usuario ELLA
             if ($request->ella_id) {
                 $ella = User::findOrFail($request->ella_id);
-                $ellaImages = $this->imageService->saveImageFromBase64(
-                    $request->ella_foto_base64,
+                $ellaImages = $this->imageService->saveImageFromFile(
+                    $request->file('ella_foto'),
                     'users',
                     $ella->foto_path,
                 );
@@ -456,8 +456,8 @@ class ParejaController extends Controller
         }
 
         // Guardar imagen si se actualiza
-        $parejaImages = $this->imageService->saveImageFromBase64(
-            $request->pareja_foto_base64,
+        $parejaImages = $this->imageService->saveImageFromFile(
+            $request->file('pareja_foto'),
             'parejas',
             $pareja->foto_path,
         );

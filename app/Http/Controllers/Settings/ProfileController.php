@@ -53,8 +53,8 @@ class ProfileController extends Controller
         $user->fill($request->validated());
 
         // Guardar imagen si se actualiza
-        $userImages = $this->imageService->saveImageFromBase64(
-            $request->foto_base64,
+        $userImages = $this->imageService->saveImageFromFile(
+            $request->file('foto'),
             'users',
             $user->foto_path,
         );

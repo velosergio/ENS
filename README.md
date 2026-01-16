@@ -48,7 +48,7 @@ Aplicación web para la gestión del movimiento "Equipos de Nuestra Señora" (EN
 ### Optimizaciones
 - **Sistema de thumbnails**: Generación automática de 3 tamaños (50x50, 100x100, 500x500)
 - **Scroll infinito**: Carga progresiva de datos con Inertia v2
-- **Imágenes optimizadas**: Thumbnails en base64 para carga rápida
+- **Imágenes optimizadas**: Almacenamiento local con thumbnails para carga rápida
 - **Mobile-first**: Diseño responsive priorizado para móviles
 
 ## 🛠️ Requisitos Técnicos

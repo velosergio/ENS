@@ -1,7 +1,7 @@
 import { Transition } from '@headlessui/react';
-import { Form, Head, router } from '@inertiajs/react';
+import { Head, router, useForm } from '@inertiajs/react';
 import { X } from 'lucide-react';
-import { useState, useRef } from 'react';
+import { useState, useRef, useEffect } from 'react';
 
 import ParejaController from '@/actions/App/Http/Controllers/Settings/ParejaController';
 import HeadingSmall from '@/components/heading-small';
@@ -73,23 +73,48 @@ export default function Pareja({
 
     const today = new Date().toISOString().split('T')[0];
 
-    // Estado para la foto: puede ser URL (del backend) o base64 (nueva subida)
+    // Estado para la foto: puede ser URL (del backend) o blob URL (nueva subida)
     const [fotoPreview, setFotoPreview] = useState<string | null>(parejaProp.foto_url);
-    const [fotoBase64, setFotoBase64] = useState<string | null>(null);
+    const [fotoFile, setFotoFile] = useState<File | null>(null);
     const fileInputRef = useRef<HTMLInputElement>(null);
 
     const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const file = e.target.files?.[0];
         if (file) {
-            const reader = new FileReader();
-            reader.onloadend = () => {
-                const base64String = reader.result as string;
-                setFotoBase64(base64String);
-                setFotoPreview(base64String); // Mostrar la nueva imagen
-            };
-            reader.readAsDataURL(file);
+            const previewUrl = URL.createObjectURL(file);
+            setFotoFile(file);
+            setFotoPreview(previewUrl);
         }
     };
+
+    // Limpiar URLs de objetos cuando el componente se desmonte
+    useEffect(() => {
+        return () => {
+            if (fotoPreview && fotoPreview.startsWith('blob:')) {
+                URL.revokeObjectURL(fotoPreview);
+            }
+        };
+    }, [fotoPreview]);
+
+    const form = useForm({
+        fecha_ingreso: formatDateForInput(parejaProp.fecha_ingreso),
+        equipo_id: parejaProp.equipo_id?.toString() || '',
+        pareja_foto: null as File | null,
+    });
+
+    // Sincronizar fotoFile con form cuando cambia
+    useEffect(() => {
+        form.setData('pareja_foto', fotoFile);
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [fotoFile]);
+
+    function submit(e: React.FormEvent) {
+        e.preventDefault();
+        form.post(ParejaController.update.url(), {
+            preserveScroll: true,
+            forceFormData: true,
+        });
+    }
 
     return (
         <AppLayout breadcrumbs={breadcrumbs}>
@@ -104,14 +129,10 @@ export default function Pareja({
                         description="Actualiza la información de la pareja"
                     />
 
-                    <Form
-                        {...ParejaController.update.form()}
-                        options={{
-                            preserveScroll: true,
-                        }}
-                        className="space-y-6"
-                    >
-                        {({ processing, recentlySuccessful, errors }) => (
+                    <form onSubmit={submit} className="space-y-6">
+                        {(() => {
+                            const { processing, recentlySuccessful, errors } = form;
+                            return (
                             <>
                                 {/* Sección: Información de la Pareja */}
                                 <div className="space-y-4 rounded-lg border p-6">
@@ -128,9 +149,8 @@ export default function Pareja({
                                             id="fecha_ingreso"
                                             type="date"
                                             className="mt-1 block w-full"
-                                            defaultValue={formatDateForInput(
-                                                parejaProp.fecha_ingreso,
-                                            )}
+                                            value={form.data.fecha_ingreso}
+                                            onChange={(e) => form.setData('fecha_ingreso', e.target.value)}
                                             name="fecha_ingreso"
                                             required
                                             max={today}
@@ -145,27 +165,14 @@ export default function Pareja({
                                         <Label htmlFor="equipo_id">
                                             Equipo
                                         </Label>
-                                        <input
-                                            type="hidden"
-                                            name="equipo_id"
-                                            id="equipo_id"
-                                            value={
-                                                parejaProp.equipo_id
-                                                    ? parejaProp.equipo_id.toString()
-                                                    : ''
-                                            }
-                                        />
                                         <Select
-                                            defaultValue={
-                                                parejaProp.equipo_id
-                                                    ? parejaProp.equipo_id.toString()
-                                                    : 'none'
+                                            value={
+                                                form.data.equipo_id === '' || form.data.equipo_id === 'none'
+                                                    ? 'none'
+                                                    : form.data.equipo_id
                                             }
                                             onValueChange={(value) => {
-                                                const input = document.getElementById('equipo_id') as HTMLInputElement;
-                                                if (input) {
-                                                    input.value = value === 'none' ? '' : value;
-                                                }
+                                                form.setData('equipo_id', value === 'none' ? '' : value);
                                             }}
                                         >
                                             <SelectTrigger className="mt-1 block w-full">
@@ -231,8 +238,8 @@ export default function Pareja({
                                                     <button
                                                         type="button"
                                                         onClick={() => {
-                                                            setFotoPreview(null);
-                                                            setFotoBase64(null);
+                                                            setFotoPreview(parejaProp.foto_url);
+                                                            setFotoFile(null);
                                                         }}
                                                         className="absolute -right-2 -top-2 flex h-6 w-6 items-center justify-center rounded-full bg-destructive text-destructive-foreground hover:bg-destructive/90"
                                                         aria-label="Eliminar fotografía"
@@ -242,14 +249,9 @@ export default function Pareja({
                                                 </div>
                                             </div>
                                         )}
-                                        <input
-                                            type="hidden"
-                                            name="pareja_foto_base64"
-                                            value={fotoBase64 || ''}
-                                        />
                                         <InputError
                                             className="mt-2"
-                                            message={errors.pareja_foto_base64}
+                                            message={errors.pareja_foto}
                                         />
                                     </div>
                                 </div>
@@ -273,8 +275,9 @@ export default function Pareja({
                                     </Transition>
                                 </div>
                             </>
-                        )}
-                    </Form>
+                        );
+                        })()}
+                    </form>
 
                     {/* Sección: Retirarse del Movimiento */}
                     {parejaProp.estado === 'activo' && (

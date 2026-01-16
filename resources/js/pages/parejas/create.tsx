@@ -44,9 +44,6 @@ export default function ParejasCreate({ equipos }: ParejasCreateProps) {
     const [elFotoPreview, setElFotoPreview] = useState<string | null>(null);
     const [ellaFotoPreview, setEllaFotoPreview] = useState<string | null>(null);
     const [parejaFotoPreview, setParejaFotoPreview] = useState<string | null>(null);
-    const [elFotoBase64, setElFotoBase64] = useState<string | null>(null);
-    const [ellaFotoBase64, setEllaFotoBase64] = useState<string | null>(null);
-    const [parejaFotoBase64, setParejaFotoBase64] = useState<string | null>(null);
 
     const handleFotoChange = (
         e: React.ChangeEvent<HTMLInputElement>,
@@ -54,21 +51,19 @@ export default function ParejasCreate({ equipos }: ParejasCreateProps) {
     ) => {
         const file = e.target.files?.[0];
         if (file) {
-            const reader = new FileReader();
-            reader.onloadend = () => {
-                const base64 = reader.result as string;
-                if (tipo === 'el') {
-                    setElFotoPreview(base64);
-                    setElFotoBase64(base64);
-                } else if (tipo === 'ella') {
-                    setEllaFotoPreview(base64);
-                    setEllaFotoBase64(base64);
-                } else {
-                    setParejaFotoPreview(base64);
-                    setParejaFotoBase64(base64);
-                }
-            };
-            reader.readAsDataURL(file);
+            // Crear preview con URL del objeto
+            const previewUrl = URL.createObjectURL(file);
+            
+            if (tipo === 'el') {
+                setElFotoPreview(previewUrl);
+                form.setData('el_foto', file);
+            } else if (tipo === 'ella') {
+                setEllaFotoPreview(previewUrl);
+                form.setData('ella_foto', file);
+            } else {
+                setParejaFotoPreview(previewUrl);
+                form.setData('pareja_foto', file);
+            }
         }
     };
 
@@ -90,40 +85,40 @@ export default function ParejasCreate({ equipos }: ParejasCreateProps) {
         el_celular: '',
         el_fecha_nacimiento: '',
         el_email: '',
-        el_foto_base64: '',
+        el_foto: null as File | null,
         ella_nombres: '',
         ella_apellidos: '',
         ella_celular: '',
         ella_fecha_nacimiento: '',
         ella_email: '',
-        ella_foto_base64: '',
+        ella_foto: null as File | null,
         fecha_ingreso: '',
         equipo_id: null as number | null,
-        pareja_foto_base64: '',
+        pareja_foto: null as File | null,
         password: '',
         password_confirmation: '',
     });
 
-    // Sincronizar fotos base64 con el form data cuando cambian
+    // Limpiar URLs de objetos cuando el componente se desmonte
     useEffect(() => {
-        form.setData('el_foto_base64', elFotoBase64 || '');
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [elFotoBase64]);
-
-    useEffect(() => {
-        form.setData('ella_foto_base64', ellaFotoBase64 || '');
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [ellaFotoBase64]);
-
-    useEffect(() => {
-        form.setData('pareja_foto_base64', parejaFotoBase64 || '');
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [parejaFotoBase64]);
+        return () => {
+            if (elFotoPreview && elFotoPreview.startsWith('blob:')) {
+                URL.revokeObjectURL(elFotoPreview);
+            }
+            if (ellaFotoPreview && ellaFotoPreview.startsWith('blob:')) {
+                URL.revokeObjectURL(ellaFotoPreview);
+            }
+            if (parejaFotoPreview && parejaFotoPreview.startsWith('blob:')) {
+                URL.revokeObjectURL(parejaFotoPreview);
+            }
+        };
+    }, [elFotoPreview, ellaFotoPreview, parejaFotoPreview]);
 
     function submit(e: React.FormEvent) {
         e.preventDefault();
         form.post(parejasStore().url, {
             preserveScroll: true,
+            forceFormData: true,
         });
     }
 
@@ -308,7 +303,7 @@ export default function ParejasCreate({ equipos }: ParejasCreateProps) {
                                                 )}
                                                 <InputError
                                                     message={
-                                                        form.errors.el_foto_base64
+                                                        form.errors.el_foto
                                                     }
                                                 />
                                             </div>
@@ -483,7 +478,7 @@ export default function ParejasCreate({ equipos }: ParejasCreateProps) {
                                                 )}
                                                 <InputError
                                                     message={
-                                                        form.errors.ella_foto_base64
+                                                        form.errors.ella_foto
                                                     }
                                                 />
                                             </div>
@@ -597,7 +592,7 @@ export default function ParejasCreate({ equipos }: ParejasCreateProps) {
                                                 )}
                                                 <InputError
                                                     message={
-                                                        form.errors.pareja_foto_base64
+                                                        form.errors.pareja_foto
                                                     }
                                                 />
                                             </div>

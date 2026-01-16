@@ -20,7 +20,7 @@ trait ProfileValidationRules
             'celular' => ['required', 'string', 'max:20'],
             'fecha_nacimiento' => ['required', 'date', 'before:today'],
             'sexo' => ['nullable', Rule::in(['masculino', 'femenino'])],
-            'foto_base64' => ['nullable', 'string'],
+            'foto' => ['nullable', 'image', 'max:5120'], // 5MB max
             'email' => $this->emailRules($userId),
         ];
     }

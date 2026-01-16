@@ -3,6 +3,7 @@
 use App\Models\Equipo;
 use App\Models\Pareja;
 use App\Models\User;
+use Illuminate\Http\UploadedFile;
 
 test('guests cannot access parejas index', function () {
     $response = $this->get(route('parejas.index'));
@@ -194,16 +195,16 @@ test('can create pareja with valid data', function () {
         'el_celular' => '1234567890',
         'el_fecha_nacimiento' => '1990-01-01',
         'el_email' => 'juan@example.com',
-        'el_foto_base64' => '',
+        'el_foto' => UploadedFile::fake()->image('el.jpg', 800, 600),
         'ella_nombres' => 'María',
         'ella_apellidos' => 'González',
         'ella_celular' => '0987654321',
         'ella_fecha_nacimiento' => '1992-05-15',
         'ella_email' => 'maria@example.com',
-        'ella_foto_base64' => '',
+        'ella_foto' => UploadedFile::fake()->image('ella.jpg', 800, 600),
         'fecha_ingreso' => '2024-01-01',
         'equipo_id' => $equipo->id,
-        'pareja_foto_base64' => '',
+        'pareja_foto' => UploadedFile::fake()->image('pareja.jpg', 800, 600),
         'password' => 'Password123!',
         'password_confirmation' => 'Password123!',
     ];
@@ -236,16 +237,16 @@ test('cannot create pareja with duplicate emails', function () {
         'el_celular' => '1234567890',
         'el_fecha_nacimiento' => '1990-01-01',
         'el_email' => 'juan@example.com', // Email duplicado
-        'el_foto_base64' => '',
+        'el_foto' => UploadedFile::fake()->image('el.jpg', 800, 600),
         'ella_nombres' => 'María',
         'ella_apellidos' => 'González',
         'ella_celular' => '0987654321',
         'ella_fecha_nacimiento' => '1992-05-15',
         'ella_email' => 'maria@example.com',
-        'ella_foto_base64' => '',
+        'ella_foto' => UploadedFile::fake()->image('ella.jpg', 800, 600),
         'fecha_ingreso' => '2024-01-01',
         'numero_equipo' => 5,
-        'pareja_foto_base64' => '',
+        'pareja_foto' => UploadedFile::fake()->image('pareja.jpg', 800, 600),
         'password' => 'Password123!',
         'password_confirmation' => 'Password123!',
     ];
@@ -276,21 +277,21 @@ test('can update pareja', function () {
         'fecha_ingreso' => '2024-02-01',
         'equipo_id' => $equipo->id,
         'estado' => 'activo',
-        'pareja_foto_base64' => '',
+        'pareja_foto' => UploadedFile::fake()->image('pareja.jpg', 800, 600),
         'el_id' => $el->id,
         'el_nombres' => 'Juan Actualizado',
         'el_apellidos' => 'Pérez',
         'el_celular' => '1234567890',
         'el_fecha_nacimiento' => '1990-01-01',
         'el_email' => $el->email,
-        'el_foto_base64' => '',
+        'el_foto' => UploadedFile::fake()->image('el.jpg', 800, 600),
         'ella_id' => $ella->id,
         'ella_nombres' => 'María',
         'ella_apellidos' => 'González Actualizada',
         'ella_celular' => '0987654321',
         'ella_fecha_nacimiento' => '1992-05-15',
         'ella_email' => $ella->email,
-        'ella_foto_base64' => '',
+        'ella_foto' => UploadedFile::fake()->image('ella.jpg', 800, 600),
     ];
 
     $this->actingAs($admin)

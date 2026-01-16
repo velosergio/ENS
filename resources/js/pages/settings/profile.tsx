@@ -1,7 +1,7 @@
 import { Transition } from '@headlessui/react';
-import { Form, Head, Link, usePage } from '@inertiajs/react';
+import { Head, Link, useForm, usePage } from '@inertiajs/react';
 import { X } from 'lucide-react';
-import { useState, useRef } from 'react';
+import { useState, useRef, useEffect } from 'react';
 
 import ProfileController from '@/actions/App/Http/Controllers/Settings/ProfileController';
 import DeleteUser from '@/components/delete-user';
@@ -59,23 +59,52 @@ export default function Profile({
         return date.toISOString().split('T')[0];
     };
 
-    // Estado para la foto: puede ser URL (del backend) o base64 (nueva subida)
+    // Estado para la foto: puede ser URL (del backend) o blob URL (nueva subida)
     const [fotoPreview, setFotoPreview] = useState<string | null>(userProp.foto_url);
-    const [fotoBase64, setFotoBase64] = useState<string | null>(null);
+    const [fotoFile, setFotoFile] = useState<File | null>(null);
     const fileInputRef = useRef<HTMLInputElement>(null);
 
     const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const file = e.target.files?.[0];
         if (file) {
-            const reader = new FileReader();
-            reader.onloadend = () => {
-                const base64String = reader.result as string;
-                setFotoBase64(base64String);
-                setFotoPreview(base64String); // Mostrar la nueva imagen
-            };
-            reader.readAsDataURL(file);
+            const previewUrl = URL.createObjectURL(file);
+            setFotoFile(file);
+            setFotoPreview(previewUrl);
         }
     };
+
+    // Limpiar URLs de objetos cuando el componente se desmonte
+    useEffect(() => {
+        return () => {
+            if (fotoPreview && fotoPreview.startsWith('blob:')) {
+                URL.revokeObjectURL(fotoPreview);
+            }
+        };
+    }, [fotoPreview]);
+
+    const form = useForm({
+        nombres: userProp.nombres || '',
+        apellidos: userProp.apellidos || '',
+        celular: userProp.celular || '',
+        fecha_nacimiento: formatDateForInput(userProp.fecha_nacimiento),
+        sexo: userProp.sexo || 'masculino',
+        email: userProp.email,
+        foto: null as File | null,
+    });
+
+    // Sincronizar fotoFile con form cuando cambia
+    useEffect(() => {
+        form.setData('foto', fotoFile);
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [fotoFile]);
+
+    function submit(e: React.FormEvent) {
+        e.preventDefault();
+        form.post(ProfileController.update.url(), {
+            preserveScroll: true,
+            forceFormData: true,
+        });
+    }
 
     return (
         <AppLayout breadcrumbs={breadcrumbs}>
@@ -90,14 +119,10 @@ export default function Profile({
                         description="Actualiza tu información personal y de contacto"
                     />
 
-                    <Form
-                        {...ProfileController.update.form()}
-                        options={{
-                            preserveScroll: true,
-                        }}
-                        className="space-y-6"
-                    >
-                        {({ processing, recentlySuccessful, errors }) => (
+                    <form onSubmit={submit} className="space-y-6">
+                        {(() => {
+                            const { processing, recentlySuccessful, errors } = form;
+                            return (
                             <>
                                 {/* Sección: Información Personal */}
                                 <div className="space-y-4 rounded-lg border p-6">
@@ -113,7 +138,8 @@ export default function Profile({
                                             <Input
                                                 id="nombres"
                                                 className="mt-1 block w-full"
-                                                defaultValue={userProp.nombres || ''}
+                                                value={form.data.nombres}
+                                                onChange={(e) => form.setData('nombres', e.target.value)}
                                                 name="nombres"
                                                 required
                                                 autoComplete="given-name"
@@ -132,7 +158,8 @@ export default function Profile({
                                             <Input
                                                 id="apellidos"
                                                 className="mt-1 block w-full"
-                                                defaultValue={userProp.apellidos || ''}
+                                                value={form.data.apellidos}
+                                                onChange={(e) => form.setData('apellidos', e.target.value)}
                                                 name="apellidos"
                                                 required
                                                 autoComplete="family-name"
@@ -154,7 +181,8 @@ export default function Profile({
                                                 id="celular"
                                                 type="tel"
                                                 className="mt-1 block w-full"
-                                                defaultValue={userProp.celular || ''}
+                                                value={form.data.celular}
+                                                onChange={(e) => form.setData('celular', e.target.value)}
                                                 name="celular"
                                                 required
                                                 autoComplete="tel"
@@ -175,9 +203,8 @@ export default function Profile({
                                                 id="fecha_nacimiento"
                                                 type="date"
                                                 className="mt-1 block w-full"
-                                                defaultValue={formatDateForInput(
-                                                    userProp.fecha_nacimiento,
-                                                )}
+                                                value={form.data.fecha_nacimiento}
+                                                onChange={(e) => form.setData('fecha_nacimiento', e.target.value)}
                                                 name="fecha_nacimiento"
                                                 required
                                                 autoComplete="bday"
@@ -197,7 +224,8 @@ export default function Profile({
                                                     type="radio"
                                                     name="sexo"
                                                     value="masculino"
-                                                    defaultChecked={userProp.sexo === 'masculino'}
+                                                    checked={form.data.sexo === 'masculino'}
+                                                    onChange={(e) => form.setData('sexo', e.target.value as 'masculino' | 'femenino')}
                                                     className="h-4 w-4"
                                                 />
                                                 <span className="text-2xl">♂</span>
@@ -208,7 +236,8 @@ export default function Profile({
                                                     type="radio"
                                                     name="sexo"
                                                     value="femenino"
-                                                    defaultChecked={userProp.sexo === 'femenino'}
+                                                    checked={form.data.sexo === 'femenino'}
+                                                    onChange={(e) => form.setData('sexo', e.target.value as 'masculino' | 'femenino')}
                                                     className="h-4 w-4"
                                                 />
                                                 <span className="text-2xl">♀</span>
@@ -257,8 +286,8 @@ export default function Profile({
                                                     <button
                                                         type="button"
                                                         onClick={() => {
-                                                            setFotoPreview(null);
-                                                            setFotoBase64(null);
+                                                            setFotoPreview(userProp.foto_url);
+                                                            setFotoFile(null);
                                                         }}
                                                         className="absolute -right-2 -top-2 flex h-6 w-6 items-center justify-center rounded-full bg-destructive text-destructive-foreground hover:bg-destructive/90"
                                                         aria-label="Eliminar fotografía"
@@ -268,14 +297,9 @@ export default function Profile({
                                                 </div>
                                             </div>
                                         )}
-                                        <input
-                                            type="hidden"
-                                            name="foto_base64"
-                                            value={fotoBase64 || ''}
-                                        />
                                         <InputError
                                             className="mt-2"
-                                            message={errors.foto_base64}
+                                            message={errors.foto}
                                         />
                                     </div>
                                 </div>
@@ -296,7 +320,8 @@ export default function Profile({
                                             id="email"
                                             type="email"
                                             className="mt-1 block w-full"
-                                            defaultValue={auth.user.email}
+                                            value={form.data.email}
+                                            onChange={(e) => form.setData('email', e.target.value)}
                                             name="email"
                                             required
                                             autoComplete="username"
@@ -353,8 +378,9 @@ export default function Profile({
                                     </Transition>
                                 </div>
                             </>
-                        )}
-                    </Form>
+                        );
+                        })()}
+                    </form>
                 </div>
 
                 <DeleteUser />

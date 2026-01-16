@@ -60,7 +60,6 @@ interface ParejaData {
     } | null;
     fecha_ingreso: string | null;
     estado: 'activo' | 'retirado';
-    foto_base64: string | null;
     foto_thumbnail_50: string | null;
     el: UsuarioData | null;
     ella: UsuarioData | null;

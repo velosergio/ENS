@@ -1,5 +1,8 @@
 # Change Notes
 
+## *0.0.4.4*
+- Migrado por completo a sistema de almacenamiento local
+
 ## *0.0.4.3.1*
 - Test Actualizados
 

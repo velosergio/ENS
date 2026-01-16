@@ -19,25 +19,22 @@ export default function Register() {
         el_celular: '',
         el_fecha_nacimiento: '',
         el_email: '',
-        el_foto_base64: '',
+        el_foto: null as File | null,
         ella_nombres: '',
         ella_apellidos: '',
         ella_celular: '',
         ella_fecha_nacimiento: '',
         ella_email: '',
-        ella_foto_base64: '',
+        ella_foto: null as File | null,
         fecha_ingreso: '',
         equipo_id: '',
-        pareja_foto_base64: '',
+        pareja_foto: null as File | null,
         password: '',
         password_confirmation: '',
     });
     const [elFotoPreview, setElFotoPreview] = useState<string | null>(null);
     const [ellaFotoPreview, setEllaFotoPreview] = useState<string | null>(null);
     const [parejaFotoPreview, setParejaFotoPreview] = useState<string | null>(null);
-    const [elFotoBase64, setElFotoBase64] = useState<string | null>(null);
-    const [ellaFotoBase64, setEllaFotoBase64] = useState<string | null>(null);
-    const [parejaFotoBase64, setParejaFotoBase64] = useState<string | null>(null);
 
     const handleFotoChange = (
         e: React.ChangeEvent<HTMLInputElement>,
@@ -45,18 +42,19 @@ export default function Register() {
     ) => {
         const file = e.target.files?.[0];
         if (file) {
+            // Crear preview
             const reader = new FileReader();
             reader.onloadend = () => {
-                const base64 = reader.result as string;
+                const preview = reader.result as string;
                 if (tipo === 'el') {
-                    setElFotoPreview(base64);
-                    setElFotoBase64(base64);
+                    setElFotoPreview(preview);
+                    setData('el_foto', file);
                 } else if (tipo === 'ella') {
-                    setEllaFotoPreview(base64);
-                    setEllaFotoBase64(base64);
+                    setEllaFotoPreview(preview);
+                    setData('ella_foto', file);
                 } else {
-                    setParejaFotoPreview(base64);
-                    setParejaFotoBase64(base64);
+                    setParejaFotoPreview(preview);
+                    setData('pareja_foto', file);
                 }
             };
             reader.readAsDataURL(file);
@@ -73,28 +71,10 @@ export default function Register() {
 
     const today = new Date().toISOString().split('T')[0];
 
-    // Sincronizar fotos base64 con el form data cuando cambian
-    useEffect(() => {
-        if (elFotoBase64) {
-            setData('el_foto_base64', elFotoBase64);
-        }
-    }, [elFotoBase64, setData]);
-
-    useEffect(() => {
-        if (ellaFotoBase64) {
-            setData('ella_foto_base64', ellaFotoBase64);
-        }
-    }, [ellaFotoBase64, setData]);
-
-    useEffect(() => {
-        if (parejaFotoBase64) {
-            setData('pareja_foto_base64', parejaFotoBase64);
-        }
-    }, [parejaFotoBase64, setData]);
-
     function submit(e: React.FormEvent) {
         e.preventDefault();
         post('/register', {
+            forceFormData: true,
             onSuccess: () => {
                 reset('password', 'password_confirmation');
             },
@@ -216,7 +196,7 @@ export default function Register() {
                                                 className="h-24 w-24 rounded-full object-cover"
                                             />
                                         )}
-                                        <InputError message={errors.el_foto_base64} />
+                                        <InputError message={errors.el_foto} />
                                     </div>
                                 </div>
                             </div>
@@ -329,7 +309,7 @@ export default function Register() {
                                                 className="h-24 w-24 rounded-full object-cover"
                                             />
                                         )}
-                                        <InputError message={errors.ella_foto_base64} />
+                                        <InputError message={errors.ella_foto} />
                                     </div>
                                 </div>
                             </div>
@@ -378,7 +358,7 @@ export default function Register() {
                                                 className="h-24 w-24 rounded-full object-cover"
                                             />
                                         )}
-                                        <InputError message={errors.pareja_foto_base64} />
+                                        <InputError message={errors.pareja_foto} />
                                     </div>
 
                                     <Alert className="bg-blue-50 dark:bg-blue-950/20 border-blue-200 dark:border-blue-900">

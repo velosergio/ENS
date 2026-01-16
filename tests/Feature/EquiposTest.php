@@ -324,7 +324,7 @@ test('delete equipo degrades responsable if exists', function () {
     $equipo = Equipo::factory()->create();
     $pareja = Pareja::factory()->conUsuarios()->create(['equipo_id' => $equipo->id]);
     $usuario = $pareja->usuarios()->where('sexo', 'masculino')->first() ?? $pareja->usuarios->first();
-    
+
     // Asignar responsable
     $data = [
         'pareja_id' => $pareja->id,

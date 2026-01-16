@@ -32,7 +32,7 @@ class ParejaCreateRequest extends FormRequest
             'el_celular' => ['required', 'string', 'max:20'],
             'el_fecha_nacimiento' => ['required', 'date', 'before:today'],
             'el_email' => ['required', 'string', 'email', 'max:255', 'unique:users,email'],
-            'el_foto_base64' => ['nullable', 'string'],
+            'el_foto' => ['nullable', 'image', 'max:5120'], // 5MB max
 
             // Datos de ELLA
             'ella_nombres' => ['required', 'string', 'max:255'],
@@ -40,12 +40,12 @@ class ParejaCreateRequest extends FormRequest
             'ella_celular' => ['required', 'string', 'max:20'],
             'ella_fecha_nacimiento' => ['required', 'date', 'before:today'],
             'ella_email' => ['required', 'string', 'email', 'max:255', 'unique:users,email'],
-            'ella_foto_base64' => ['nullable', 'string'],
+            'ella_foto' => ['nullable', 'image', 'max:5120'], // 5MB max
 
             // Datos de la pareja
             'fecha_ingreso' => ['required', 'date', 'before_or_equal:today'],
             'equipo_id' => ['nullable', 'exists:equipos,id'],
-            'pareja_foto_base64' => ['nullable', 'string'],
+            'pareja_foto' => ['nullable', 'image', 'max:5120'], // 5MB max
             'password' => $this->passwordRules(),
         ];
     }

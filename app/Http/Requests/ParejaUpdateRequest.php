@@ -29,7 +29,7 @@ class ParejaUpdateRequest extends FormRequest
             // Datos de la pareja
             'fecha_ingreso' => ['required', 'date', 'before_or_equal:today'],
             'equipo_id' => ['nullable', 'exists:equipos,id'],
-            'pareja_foto_base64' => ['nullable', 'string'],
+            'pareja_foto' => ['nullable', 'image', 'max:5120'], // 5MB max
             'estado' => ['required', 'in:activo,retirado'],
 
             // Datos de ÉL
@@ -47,7 +47,7 @@ class ParejaUpdateRequest extends FormRequest
                     'id'
                 ),
             ],
-            'el_foto_base64' => ['nullable', 'string'],
+            'el_foto' => ['nullable', 'image', 'max:5120'], // 5MB max
             'el_id' => ['required', 'integer', 'exists:users,id'],
 
             // Datos de ELLA
@@ -65,7 +65,7 @@ class ParejaUpdateRequest extends FormRequest
                     'id'
                 ),
             ],
-            'ella_foto_base64' => ['nullable', 'string'],
+            'ella_foto' => ['nullable', 'image', 'max:5120'], // 5MB max
             'ella_id' => ['required', 'integer', 'exists:users,id'],
         ];
     }

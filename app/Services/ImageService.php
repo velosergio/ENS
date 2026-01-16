@@ -8,6 +8,85 @@ use Illuminate\Support\Str;
 class ImageService
 {
     /**
+     * Guardar imagen desde archivo y generar thumbnails.
+     *
+     * @param  \Illuminate\Http\UploadedFile|null  $file  Archivo de imagen
+     * @param  string  $folder  Carpeta donde guardar (ej: 'parejas', 'users')
+     * @param  string|null  $oldPath  Path de la imagen anterior para eliminarla
+     * @return array<string, string|null> Array con paths: ['original' => path, '50' => path, '100' => path, '500' => path]
+     */
+    public function saveImageFromFile(?\Illuminate\Http\UploadedFile $file, string $folder = 'images', ?string $oldPath = null): array
+    {
+        if (! $file || ! $file->isValid()) {
+            // Si hay una imagen anterior, mantenerla
+            if ($oldPath) {
+                $oldThumbnails = $this->getThumbnailPaths($oldPath);
+
+                return [
+                    'original' => $oldPath,
+                    '50' => $oldThumbnails['50'],
+                    '100' => $oldThumbnails['100'],
+                    '500' => $oldThumbnails['500'],
+                ];
+            }
+
+            return [
+                'original' => null,
+                '50' => null,
+                '100' => null,
+                '500' => null,
+            ];
+        }
+
+        // Eliminar imagen anterior si existe
+        if ($oldPath) {
+            $this->deleteImage($oldPath);
+        }
+
+        // Leer datos del archivo
+        $imageData = file_get_contents($file->getRealPath());
+        $imageType = $this->detectImageType($imageData);
+
+        // Crear imagen desde string
+        $sourceImage = @imagecreatefromstring($imageData);
+
+        if (! $sourceImage) {
+            return [
+                'original' => null,
+                '50' => null,
+                '100' => null,
+                '500' => null,
+            ];
+        }
+
+        $originalWidth = imagesx($sourceImage);
+        $originalHeight = imagesy($sourceImage);
+
+        // Generar nombre único para la imagen
+        $filename = Str::uuid().'.'.$imageType;
+        $path = $folder.'/'.$filename;
+
+        // Guardar imagen original
+        $this->saveImageFile($sourceImage, $imageType, $path);
+
+        // Generar y guardar thumbnails
+        $thumbnails = [];
+        foreach ([50, 100, 500] as $size) {
+            $thumbnailPath = $this->generateThumbnail($sourceImage, $originalWidth, $originalHeight, $size, $imageType, $folder, $filename);
+            $thumbnails[(string) $size] = $thumbnailPath;
+        }
+
+        imagedestroy($sourceImage);
+
+        return [
+            'original' => $path,
+            '50' => $thumbnails['50'],
+            '100' => $thumbnails['100'],
+            '500' => $thumbnails['500'],
+        ];
+    }
+
+    /**
      * Guardar imagen desde base64 y generar thumbnails.
      *
      * @param  string|null  $base64Image  Imagen en formato base64

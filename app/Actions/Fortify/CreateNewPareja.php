@@ -32,7 +32,7 @@ class CreateNewPareja implements CreatesNewUsers
             'el_celular' => ['required', 'string', 'max:20'],
             'el_fecha_nacimiento' => ['required', 'date', 'before:today'],
             'el_email' => ['required', 'string', 'email', 'max:255', 'unique:users,email'],
-            'el_foto_base64' => ['nullable', 'string'],
+            'el_foto' => ['nullable', 'image', 'max:5120'], // 5MB max
 
             // Datos de ELLA
             'ella_nombres' => ['required', 'string', 'max:255'],
@@ -40,19 +40,19 @@ class CreateNewPareja implements CreatesNewUsers
             'ella_celular' => ['required', 'string', 'max:20'],
             'ella_fecha_nacimiento' => ['required', 'date', 'before:today'],
             'ella_email' => ['required', 'string', 'email', 'max:255', 'unique:users,email'],
-            'ella_foto_base64' => ['nullable', 'string'],
+            'ella_foto' => ['nullable', 'image', 'max:5120'], // 5MB max
 
             // Datos de la pareja
             'fecha_ingreso' => ['required', 'date', 'before_or_equal:today'],
             'equipo_id' => ['nullable', 'exists:equipos,id'],
-            'pareja_foto_base64' => ['nullable', 'string'],
+            'pareja_foto' => ['nullable', 'image', 'max:5120'], // 5MB max
             'password' => $this->passwordRules(),
         ])->validate();
 
         return DB::transaction(function () use ($input) {
             // Guardar imagen de la pareja y generar thumbnails
-            $parejaImages = $this->imageService->saveImageFromBase64(
-                $input['pareja_foto_base64'] ?? null,
+            $parejaImages = $this->imageService->saveImageFromFile(
+                $input['pareja_foto'] ?? null,
                 'parejas',
             );
 
@@ -67,8 +67,8 @@ class CreateNewPareja implements CreatesNewUsers
             ]);
 
             // Guardar imagen de ÉL y generar thumbnails
-            $elImages = $this->imageService->saveImageFromBase64(
-                $input['el_foto_base64'] ?? null,
+            $elImages = $this->imageService->saveImageFromFile(
+                $input['el_foto'] ?? null,
                 'users',
             );
 
@@ -90,8 +90,8 @@ class CreateNewPareja implements CreatesNewUsers
             ]);
 
             // Guardar imagen de ELLA y generar thumbnails
-            $ellaImages = $this->imageService->saveImageFromBase64(
-                $input['ella_foto_base64'] ?? null,
+            $ellaImages = $this->imageService->saveImageFromFile(
+                $input['ella_foto'] ?? null,
                 'users',
             );
 
