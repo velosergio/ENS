@@ -1,5 +1,6 @@
 <?php
 
+use App\Models\Equipo;
 use App\Models\Pareja;
 use App\Models\User;
 
@@ -98,25 +99,28 @@ test('parejas index filters by estado', function () {
         );
 });
 
-test('parejas index filters by numero_equipo', function () {
+test('parejas index filters by equipo_id', function () {
     $admin = User::factory()->admin()->create();
 
+    $equipo1 = Equipo::factory()->create(['numero' => 10]);
+    $equipo2 = Equipo::factory()->create(['numero' => 20]);
+
     $pareja1 = Pareja::factory()
-        ->state(['numero_equipo' => 10])
+        ->state(['equipo_id' => $equipo1->id])
         ->conUsuarios()
         ->create();
 
     $pareja2 = Pareja::factory()
-        ->state(['numero_equipo' => 20])
+        ->state(['equipo_id' => $equipo2->id])
         ->conUsuarios()
         ->create();
 
     $this->actingAs($admin)
-        ->get(route('parejas.index', ['numero_equipo' => 10]))
+        ->get(route('parejas.index', ['equipo_id' => $equipo1->id]))
         ->assertOk()
         ->assertInertia(fn ($page) => $page
             ->has('parejas.data', 1)
-            ->where('parejas.data.0.numero_equipo', 10)
+            ->where('parejas.data.0.equipo.id', $equipo1->id)
         );
 });
 
@@ -182,6 +186,7 @@ test('admin users can access parejas create', function () {
 
 test('can create pareja with valid data', function () {
     $admin = User::factory()->admin()->create();
+    $equipo = Equipo::factory()->create(['numero' => 5]);
 
     $data = [
         'el_nombres' => 'Juan',
@@ -197,7 +202,7 @@ test('can create pareja with valid data', function () {
         'ella_email' => 'maria@example.com',
         'ella_foto_base64' => '',
         'fecha_ingreso' => '2024-01-01',
-        'numero_equipo' => 5,
+        'equipo_id' => $equipo->id,
         'pareja_foto_base64' => '',
         'password' => 'Password123!',
         'password_confirmation' => 'Password123!',
@@ -208,11 +213,11 @@ test('can create pareja with valid data', function () {
         ->assertRedirect(route('parejas.index'));
 
     $this->assertDatabaseHas('parejas', [
-        'numero_equipo' => 5,
+        'equipo_id' => $equipo->id,
         'estado' => 'activo',
     ]);
 
-    $pareja = Pareja::where('numero_equipo', 5)->first();
+    $pareja = Pareja::where('equipo_id', $equipo->id)->first();
     expect($pareja)->not->toBeNull();
 
     // Verificar que se crearon los dos usuarios
@@ -262,13 +267,14 @@ test('can access pareja edit page', function () {
 test('can update pareja', function () {
     $admin = User::factory()->admin()->create();
     $pareja = Pareja::factory()->conUsuarios()->create();
+    $equipo = Equipo::factory()->create(['numero' => 10]);
 
     $el = $pareja->el();
     $ella = $pareja->ella();
 
     $data = [
         'fecha_ingreso' => '2024-02-01',
-        'numero_equipo' => 10,
+        'equipo_id' => $equipo->id,
         'estado' => 'activo',
         'pareja_foto_base64' => '',
         'el_id' => $el->id,
@@ -292,7 +298,7 @@ test('can update pareja', function () {
         ->assertRedirect(route('parejas.index'));
 
     $pareja->refresh();
-    expect($pareja->numero_equipo)->toBe(10);
+    expect($pareja->equipo_id)->toBe($equipo->id);
     expect($pareja->el()->nombres)->toBe('Juan Actualizado');
     expect($pareja->ella()->apellidos)->toBe('González Actualizada');
 });

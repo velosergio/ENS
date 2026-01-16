@@ -44,7 +44,7 @@ class ParejaCreateRequest extends FormRequest
 
             // Datos de la pareja
             'fecha_ingreso' => ['required', 'date', 'before_or_equal:today'],
-            'numero_equipo' => ['required', 'integer', 'min:1'],
+            'equipo_id' => ['nullable', 'exists:equipos,id'],
             'pareja_foto_base64' => ['nullable', 'string'],
             'password' => $this->passwordRules(),
         ];
@@ -80,9 +80,7 @@ class ParejaCreateRequest extends FormRequest
             'fecha_ingreso.required' => 'La fecha de ingreso es obligatoria.',
             'fecha_ingreso.date' => 'La fecha de ingreso debe ser una fecha válida.',
             'fecha_ingreso.before_or_equal' => 'La fecha de ingreso no puede ser futura.',
-            'numero_equipo.required' => 'El número de equipo es obligatorio.',
-            'numero_equipo.integer' => 'El número del equipo debe ser un número entero.',
-            'numero_equipo.min' => 'El número del equipo debe ser mayor o igual a 1.',
+            'equipo_id.exists' => 'El equipo seleccionado no existe.',
 
             // Password
             'password.required' => 'La contraseña es obligatoria.',

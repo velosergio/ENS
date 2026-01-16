@@ -19,34 +19,38 @@ class ParejaController extends Controller
     public function __construct(
         protected ImageService $imageService,
     ) {}
+
     /**
      * Listar parejas con búsqueda y filtros.
      */
     public function index(Request $request): Response
     {
         $query = Pareja::query()
-            ->with(['usuarios' => function ($q) {
-                $q->orderBy('sexo');
-            }]);
+            ->with([
+                'usuarios' => function ($q) {
+                    $q->orderBy('sexo');
+                },
+                'equipo',
+            ]);
 
         // Solo excluir parejas con usuarios mango si el usuario actual no es mango o admin
         $user = Auth::user();
-        if (!$user || ($user->rol !== 'mango' && $user->rol !== 'admin')) {
+        if (! $user || ($user->rol !== 'mango' && $user->rol !== 'admin')) {
             $query->sinMango(); // Excluir parejas con usuarios mango
         }
 
         // Filtro por estado
         if ($request->has('estado') && $request->estado !== '' && $request->estado !== 'todos') {
             $query->where('estado', $request->estado);
-        } elseif (!$request->has('estado') || $request->estado === '') {
+        } elseif (! $request->has('estado') || $request->estado === '') {
             // Por defecto solo activas si no se especifica estado
             $query->where('estado', 'activo');
         }
         // Si estado === 'todos', no se aplica filtro de estado
 
-        // Filtro por número de equipo
-        if ($request->has('numero_equipo') && $request->numero_equipo !== '') {
-            $query->where('numero_equipo', $request->numero_equipo);
+        // Filtro por equipo
+        if ($request->has('equipo_id') && $request->equipo_id !== '') {
+            $query->where('equipo_id', $request->equipo_id);
         }
 
         // Búsqueda en tiempo real
@@ -64,7 +68,11 @@ class ParejaController extends Controller
 
                 return [
                     'id' => $pareja->id,
-                    'numero_equipo' => $pareja->numero_equipo,
+                    'equipo_id' => $pareja->equipo_id,
+                    'equipo' => $pareja->equipo ? [
+                        'id' => $pareja->equipo->id,
+                        'numero' => $pareja->equipo->numero,
+                    ] : null,
                     'fecha_ingreso' => $pareja->fecha_ingreso?->format('Y-m-d'),
                     'estado' => $pareja->estado,
                     'foto_base64' => $pareja->foto_base64,
@@ -88,13 +96,22 @@ class ParejaController extends Controller
                 ];
             });
 
+        $equipos = \App\Models\Equipo::query()
+            ->orderBy('numero', 'asc')
+            ->get()
+            ->map(fn ($equipo) => [
+                'id' => $equipo->id,
+                'numero' => $equipo->numero,
+            ]);
+
         return Inertia::render('parejas/index', [
             'parejas' => Inertia::scroll($parejas),
             'filters' => [
                 'buscar' => $request->buscar,
                 'estado' => $request->estado ?? 'activo',
-                'numero_equipo' => $request->numero_equipo,
+                'equipo_id' => $request->equipo_id,
             ],
+            'equipos' => $equipos,
         ]);
     }
 
@@ -103,7 +120,17 @@ class ParejaController extends Controller
      */
     public function create(): Response
     {
-        return Inertia::render('parejas/create');
+        $equipos = \App\Models\Equipo::query()
+            ->orderBy('numero', 'asc')
+            ->get()
+            ->map(fn ($equipo) => [
+                'id' => $equipo->id,
+                'numero' => $equipo->numero,
+            ]);
+
+        return Inertia::render('parejas/create', [
+            'equipos' => $equipos,
+        ]);
     }
 
     /**
@@ -120,7 +147,7 @@ class ParejaController extends Controller
             // Crear la pareja
             $pareja = Pareja::create([
                 'fecha_ingreso' => $request->fecha_ingreso,
-                'numero_equipo' => $request->numero_equipo,
+                'equipo_id' => $request->equipo_id,
                 'foto_base64' => $request->pareja_foto_base64 ?? null,
                 'foto_thumbnail_50' => $parejaThumbnails['50'],
                 'foto_thumbnail_100' => $parejaThumbnails['100'],
@@ -147,7 +174,6 @@ class ParejaController extends Controller
                 'foto_thumbnail_500' => $elThumbnails['500'],
                 'password' => $request->password,
                 'pareja_id' => $pareja->id,
-                'equipo_id' => null, // Se asignará cuando exista el modelo Equipo
                 'rol' => 'equipista',
             ]);
 
@@ -170,7 +196,6 @@ class ParejaController extends Controller
                 'foto_thumbnail_500' => $ellaThumbnails['500'],
                 'password' => $request->password,
                 'pareja_id' => $pareja->id,
-                'equipo_id' => null, // Se asignará cuando exista el modelo Equipo
                 'rol' => 'equipista',
             ]);
 
@@ -186,18 +211,33 @@ class ParejaController extends Controller
      */
     public function edit(Pareja $pareja): Response
     {
-        $pareja->load(['usuarios' => function ($q) {
-            $q->orderBy('sexo');
-        }]);
+        $pareja->load([
+            'usuarios' => function ($q) {
+                $q->orderBy('sexo');
+            },
+            'equipo',
+        ]);
 
         $el = $pareja->el();
         $ella = $pareja->ella();
+
+        $equipos = \App\Models\Equipo::query()
+            ->orderBy('numero', 'asc')
+            ->get()
+            ->map(fn ($equipo) => [
+                'id' => $equipo->id,
+                'numero' => $equipo->numero,
+            ]);
 
         return Inertia::render('parejas/edit', [
             'pareja' => [
                 'id' => $pareja->id,
                 'fecha_ingreso' => $pareja->fecha_ingreso?->format('Y-m-d'),
-                'numero_equipo' => $pareja->numero_equipo,
+                'equipo_id' => $pareja->equipo_id,
+                'equipo' => $pareja->equipo ? [
+                    'id' => $pareja->equipo->id,
+                    'numero' => $pareja->equipo->numero,
+                ] : null,
                 'pareja_foto_base64' => $pareja->foto_base64,
                 'estado' => $pareja->estado,
                 'el' => $el ? [
@@ -219,6 +259,7 @@ class ParejaController extends Controller
                     'foto_base64' => $ella->foto_base64,
                 ] : null,
             ],
+            'equipos' => $equipos,
         ]);
     }
 
@@ -241,7 +282,7 @@ class ParejaController extends Controller
             // Actualizar pareja
             $pareja->update([
                 'fecha_ingreso' => $request->fecha_ingreso,
-                'numero_equipo' => $request->numero_equipo,
+                'equipo_id' => $request->equipo_id,
                 'foto_base64' => $parejaFotoBase64,
                 'foto_thumbnail_50' => $parejaThumbnails['50'],
                 'foto_thumbnail_100' => $parejaThumbnails['100'],
@@ -380,14 +421,29 @@ class ParejaController extends Controller
             abort(404, 'Pareja no encontrada');
         }
 
+        $pareja->load('equipo');
+
+        $equipos = \App\Models\Equipo::query()
+            ->orderBy('numero', 'asc')
+            ->get()
+            ->map(fn ($equipo) => [
+                'id' => $equipo->id,
+                'numero' => $equipo->numero,
+            ]);
+
         return Inertia::render('settings/pareja', [
             'pareja' => [
                 'id' => $pareja->id,
                 'fecha_ingreso' => $pareja->fecha_ingreso?->format('Y-m-d'),
-                'numero_equipo' => $pareja->numero_equipo,
+                'equipo_id' => $pareja->equipo_id,
+                'equipo' => $pareja->equipo ? [
+                    'id' => $pareja->equipo->id,
+                    'numero' => $pareja->equipo->numero,
+                ] : null,
                 'foto_base64' => $pareja->foto_base64,
                 'estado' => $pareja->estado,
             ],
+            'equipos' => $equipos,
         ]);
     }
 
@@ -404,20 +460,23 @@ class ParejaController extends Controller
         }
 
         // Generar thumbnails si se actualiza la foto
-        $parejaFotoBase64 = $request->pareja_foto_base64 ?? $pareja->foto_base64;
-        $parejaThumbnails = $parejaFotoBase64 !== $pareja->foto_base64
-            ? $this->imageService->generateThumbnails($parejaFotoBase64)
-            : [
-                '50' => $pareja->foto_thumbnail_50,
-                '100' => $pareja->foto_thumbnail_100,
-                '500' => $pareja->foto_thumbnail_500,
-            ];
-
+        $parejaFotoBase64Original = $pareja->foto_base64;
+        $parejaFotoBase64 = $request->pareja_foto_base64 ?? $parejaFotoBase64Original;
+        
         $pareja->fill($request->validated());
-        $pareja->foto_base64 = $parejaFotoBase64;
-        $pareja->foto_thumbnail_50 = $parejaThumbnails['50'];
-        $pareja->foto_thumbnail_100 = $parejaThumbnails['100'];
-        $pareja->foto_thumbnail_500 = $parejaThumbnails['500'];
+        
+        // Generar thumbnails si la foto cambió y es válida
+        if ($parejaFotoBase64 !== $parejaFotoBase64Original && $parejaFotoBase64 !== null && $parejaFotoBase64 !== '') {
+            $parejaThumbnails = $this->imageService->generateThumbnails($parejaFotoBase64);
+            $pareja->foto_base64 = $parejaFotoBase64;
+            $pareja->foto_thumbnail_50 = $parejaThumbnails['50'];
+            $pareja->foto_thumbnail_100 = $parejaThumbnails['100'];
+            $pareja->foto_thumbnail_500 = $parejaThumbnails['500'];
+        } else {
+            // Si no cambió la foto, mantener las miniaturas actuales
+            $pareja->foto_base64 = $parejaFotoBase64;
+            // Las miniaturas se mantienen automáticamente ya que no se asignan
+        }
         $pareja->save();
 
         return to_route('pareja.edit')

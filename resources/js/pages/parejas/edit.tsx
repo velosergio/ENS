@@ -30,10 +30,16 @@ interface UsuarioData {
     foto_base64: string | null;
 }
 
+interface EquipoData {
+    id: number;
+    numero: number;
+}
+
 interface ParejaData {
     id: number;
     fecha_ingreso: string | null;
-    numero_equipo: number | null;
+    equipo_id: number | null;
+    equipo: EquipoData | null;
     pareja_foto_base64: string | null;
     estado: 'activo' | 'retirado';
     el: UsuarioData | null;
@@ -42,6 +48,7 @@ interface ParejaData {
 
 interface ParejasEditProps {
     pareja: ParejaData;
+    equipos: EquipoData[];
 }
 
 const breadcrumbs = (parejaId: number): BreadcrumbItem[] => [
@@ -55,7 +62,10 @@ const breadcrumbs = (parejaId: number): BreadcrumbItem[] => [
     },
 ];
 
-export default function ParejasEdit({ pareja: parejaProp }: ParejasEditProps) {
+export default function ParejasEdit({
+    pareja: parejaProp,
+    equipos,
+}: ParejasEditProps) {
     const formatDateForInput = (
         dateString: string | null | undefined,
     ): string => {
@@ -119,7 +129,7 @@ export default function ParejasEdit({ pareja: parejaProp }: ParejasEditProps) {
     const form = useForm({
         // Pareja
         fecha_ingreso: parejaProp.fecha_ingreso || '',
-        numero_equipo: parejaProp.numero_equipo?.toString() || '',
+        equipo_id: parejaProp.equipo_id ?? null,
         estado: parejaProp.estado,
         pareja_foto_base64: parejaProp.pareja_foto_base64 || '',
         // ÉL
@@ -614,29 +624,39 @@ export default function ParejasEdit({ pareja: parejaProp }: ParejasEditProps) {
                                 </div>
 
                                 <div className="grid gap-2">
-                                    <Label htmlFor="numero_equipo">
-                                        Número del Equipo{' '}
-                                        <span className="text-destructive">
-                                            *
-                                        </span>
-                                    </Label>
-                                    <Input
-                                        id="numero_equipo"
-                                        type="number"
-                                        required
-                                        min="1"
-                                        name="numero_equipo"
-                                        placeholder="Ingrese el número del equipo"
-                                        value={form.data.numero_equipo || ''}
-                                        onChange={(e) =>
+                                    <Label htmlFor="equipo_id">Equipo</Label>
+                                    <Select
+                                        value={
+                                            form.data.equipo_id
+                                                ? form.data.equipo_id.toString()
+                                                : 'none'
+                                        }
+                                        onValueChange={(value) =>
                                             form.setData(
-                                                'numero_equipo',
-                                                e.target.value,
+                                                'equipo_id',
+                                                value === 'none' ? null : parseInt(value, 10),
                                             )
                                         }
-                                    />
+                                    >
+                                        <SelectTrigger>
+                                            <SelectValue placeholder="Seleccionar equipo (opcional)" />
+                                        </SelectTrigger>
+                                        <SelectContent>
+                                            <SelectItem value="none">
+                                                Sin equipo
+                                            </SelectItem>
+                                            {equipos.map((equipo) => (
+                                                <SelectItem
+                                                    key={equipo.id}
+                                                    value={equipo.id.toString()}
+                                                >
+                                                    Equipo {equipo.numero}
+                                                </SelectItem>
+                                            ))}
+                                        </SelectContent>
+                                    </Select>
                                     <InputError
-                                        message={form.errors.numero_equipo}
+                                        message={form.errors.equipo_id}
                                     />
                                 </div>
 

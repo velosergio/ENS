@@ -61,7 +61,9 @@ class PermissionService
             'view' => ['roles' => ['mango', 'admin']],
             'create' => ['roles' => ['mango', 'admin']],
             'update' => ['roles' => ['mango', 'admin']],
-            'delete' => ['roles' => ['mango']],
+            'delete' => ['roles' => ['mango', 'admin']],
+            'asignar-responsable' => ['roles' => ['mango', 'admin']],
+            'configurar-consiliario' => ['roles' => ['mango', 'admin']],
         ],
 
         // Módulo: Configuración del Sistema

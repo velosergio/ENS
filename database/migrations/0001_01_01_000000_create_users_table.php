@@ -15,7 +15,6 @@ return new class extends Migration
         Schema::create('parejas', function (Blueprint $table) {
             $table->id();
             $table->date('fecha_ingreso')->nullable();
-            $table->smallInteger('numero_equipo')->nullable();
             $table->longText('foto_base64')->nullable();
             $table->text('foto_thumbnail_50')->nullable();
             $table->text('foto_thumbnail_100')->nullable();
@@ -37,7 +36,6 @@ return new class extends Migration
             $table->text('foto_thumbnail_100')->nullable();
             $table->text('foto_thumbnail_500')->nullable();
             $table->foreignId('pareja_id')->nullable()->constrained('parejas')->nullOnDelete();
-            $table->foreignId('equipo_id')->nullable();
             $table->enum('rol', ['mango', 'admin', 'equipista'])->default('equipista');
             $table->string('email')->unique();
             $table->timestamp('email_verified_at')->nullable();
@@ -47,6 +45,20 @@ return new class extends Migration
             $table->timestamp('two_factor_confirmed_at')->nullable();
             $table->rememberToken();
             $table->timestamps();
+        });
+
+        // Crear tabla equipos (después de users para foreign key de responsable_id)
+        Schema::create('equipos', function (Blueprint $table) {
+            $table->id();
+            $table->smallInteger('numero')->unique();
+            $table->foreignId('responsable_id')->nullable()->constrained('users')->nullOnDelete();
+            $table->string('consiliario_nombre')->nullable();
+            $table->timestamps();
+        });
+
+        // Agregar equipo_id a parejas
+        Schema::table('parejas', function (Blueprint $table) {
+            $table->foreignId('equipo_id')->nullable()->after('fecha_ingreso')->constrained('equipos')->nullOnDelete();
         });
 
         Schema::create('password_reset_tokens', function (Blueprint $table) {
@@ -74,5 +86,6 @@ return new class extends Migration
         Schema::dropIfExists('password_reset_tokens');
         Schema::dropIfExists('users');
         Schema::dropIfExists('parejas');
+        Schema::dropIfExists('equipos');
     }
 };

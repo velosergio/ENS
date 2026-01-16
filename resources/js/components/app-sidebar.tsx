@@ -1,5 +1,5 @@
 import { Link, usePage } from '@inertiajs/react';
-import { LayoutGrid, Users } from 'lucide-react';
+import { Heart, LayoutGrid, UsersRound } from 'lucide-react';
 
 import { NavMain } from '@/components/nav-main';
 import { NavUser } from '@/components/nav-user';
@@ -13,6 +13,7 @@ import {
     SidebarMenuItem,
 } from '@/components/ui/sidebar';
 import { dashboard } from '@/routes';
+import { index as equiposIndex } from '@/routes/equipos';
 import { index as parejasIndex } from '@/routes/parejas';
 import { type NavItem, type SharedData } from '@/types';
 
@@ -28,13 +29,18 @@ export function AppSidebar() {
             href: dashboard(),
             icon: LayoutGrid,
         },
-        // Mostrar Parejas solo si el usuario tiene rol mango o admin
+        // Mostrar Parejas y Equipos solo si el usuario tiene rol mango o admin
         ...(auth.user && (auth.user.rol === 'mango' || auth.user.rol === 'admin')
             ? [
                   {
                       title: 'Parejas',
                       href: parejasIndex(),
-                      icon: Users,
+                      icon: Heart,
+                  } as NavItem,
+                  {
+                      title: 'Equipos',
+                      href: equiposIndex(),
+                      icon: UsersRound,
                   } as NavItem,
               ]
             : []),

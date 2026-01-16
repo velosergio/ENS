@@ -28,7 +28,7 @@ class ParejaUpdateRequest extends FormRequest
         return [
             // Datos de la pareja
             'fecha_ingreso' => ['required', 'date', 'before_or_equal:today'],
-            'numero_equipo' => ['required', 'integer', 'min:1'],
+            'equipo_id' => ['nullable', 'exists:equipos,id'],
             'pareja_foto_base64' => ['nullable', 'string'],
             'estado' => ['required', 'in:activo,retirado'],
 
@@ -82,9 +82,7 @@ class ParejaUpdateRequest extends FormRequest
             'fecha_ingreso.required' => 'El campo fecha de ingreso es obligatorio.',
             'fecha_ingreso.date' => 'La fecha de ingreso debe ser una fecha válida.',
             'fecha_ingreso.before_or_equal' => 'La fecha de ingreso no puede ser futura.',
-            'numero_equipo.required' => 'El número de equipo es obligatorio.',
-            'numero_equipo.integer' => 'El número del equipo debe ser un número entero.',
-            'numero_equipo.min' => 'El número del equipo debe ser mayor o igual a 1.',
+            'equipo_id.exists' => 'El equipo seleccionado no existe.',
             'estado.required' => 'El estado es obligatorio.',
             'estado.in' => 'El estado debe ser activo o retirado.',
 
@@ -124,10 +122,10 @@ class ParejaUpdateRequest extends FormRequest
             ]);
         }
 
-        // Limpiar numero_equipo si está vacío
-        if ($this->has('numero_equipo') && $this->input('numero_equipo') === '') {
+        // Limpiar equipo_id si está vacío
+        if ($this->has('equipo_id') && $this->input('equipo_id') === '') {
             $this->merge([
-                'numero_equipo' => null,
+                'equipo_id' => null,
             ]);
         }
     }

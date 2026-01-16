@@ -56,4 +56,18 @@ Route::middleware(['auth', 'permission:parejas,view'])->group(function () {
         ->name('parejas.reactivar');
 });
 
+// Módulo de Equipos (mango/admin)
+Route::middleware(['auth', 'permission:equipos,view'])->group(function () {
+    Route::resource('equipos', \App\Http\Controllers\EquipoController::class)
+        ->only(['index', 'create', 'store', 'show', 'edit', 'update', 'destroy']);
+
+    Route::post('equipos/{equipo}/asignar-responsable', [\App\Http\Controllers\EquipoController::class, 'asignarResponsable'])
+        ->middleware('permission:equipos,asignar-responsable')
+        ->name('equipos.asignar-responsable');
+
+    Route::post('equipos/{equipo}/configurar-consiliario', [\App\Http\Controllers\EquipoController::class, 'configurarConsiliario'])
+        ->middleware('permission:equipos,configurar-consiliario')
+        ->name('equipos.configurar-consiliario');
+});
+
 require __DIR__.'/settings.php';

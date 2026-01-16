@@ -7,6 +7,13 @@ import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import {
+    Select,
+    SelectContent,
+    SelectItem,
+    SelectTrigger,
+    SelectValue,
+} from '@/components/ui/select';
 import { Separator } from '@/components/ui/separator';
 import { Spinner } from '@/components/ui/spinner';
 import AppLayout from '@/layouts/app-layout';
@@ -24,7 +31,16 @@ const breadcrumbs: BreadcrumbItem[] = [
     },
 ];
 
-export default function ParejasCreate() {
+interface EquipoData {
+    id: number;
+    numero: number;
+}
+
+interface ParejasCreateProps {
+    equipos: EquipoData[];
+}
+
+export default function ParejasCreate({ equipos }: ParejasCreateProps) {
     const [elFotoPreview, setElFotoPreview] = useState<string | null>(null);
     const [ellaFotoPreview, setEllaFotoPreview] = useState<string | null>(null);
     const [parejaFotoPreview, setParejaFotoPreview] = useState<string | null>(null);
@@ -82,7 +98,7 @@ export default function ParejasCreate() {
         ella_email: '',
         ella_foto_base64: '',
         fecha_ingreso: '',
-        numero_equipo: '',
+        equipo_id: null as number | null,
         pareja_foto_base64: '',
         password: '',
         password_confirmation: '',
@@ -515,32 +531,43 @@ export default function ParejasCreate() {
                                             </div>
 
                                             <div className="grid gap-2">
-                                                <Label htmlFor="numero_equipo">
-                                                    Número del Equipo{' '}
-                                                    <span className="text-destructive">
-                                                        *
-                                                    </span>
+                                                <Label htmlFor="equipo_id">
+                                                    Equipo
                                                 </Label>
-                                                <Input
-                                                    id="numero_equipo"
-                                                    type="number"
-                                                    required
-                                                    min="1"
-                                                    name="numero_equipo"
-                                                    placeholder="Ingrese el número del equipo"
+                                                <Select
                                                     value={
-                                                        form.data.numero_equipo || ''
+                                                        form.data.equipo_id !== null
+                                                            ? form.data.equipo_id.toString()
+                                                            : 'none'
                                                     }
-                                                    onChange={(e) =>
+                                                    onValueChange={(value) =>
                                                         form.setData(
-                                                            'numero_equipo',
-                                                            e.target.value,
+                                                            'equipo_id',
+                                                            value === 'none' ? null : parseInt(value, 10),
                                                         )
                                                     }
-                                                />
+                                                >
+                                                    <SelectTrigger>
+                                                        <SelectValue placeholder="Seleccionar equipo (opcional)" />
+                                                    </SelectTrigger>
+                                                    <SelectContent>
+                                                        <SelectItem value="none">
+                                                            Sin equipo
+                                                        </SelectItem>
+                                                        {equipos.map((equipo) => (
+                                                            <SelectItem
+                                                                key={equipo.id}
+                                                                value={equipo.id.toString()}
+                                                            >
+                                                                Equipo{' '}
+                                                                {equipo.numero}
+                                                            </SelectItem>
+                                                        ))}
+                                                    </SelectContent>
+                                                </Select>
                                                 <InputError
                                                     message={
-                                                        form.errors.numero_equipo
+                                                        form.errors.equipo_id
                                                     }
                                                 />
                                             </div>

@@ -48,11 +48,13 @@ class ProfileController extends Controller
     public function update(ProfileUpdateRequest $request): RedirectResponse
     {
         $user = $request->user();
+        $fotoBase64Original = $user->foto_base64;
+        
         $user->fill($request->validated());
 
         // Generar thumbnails si se actualiza la foto
-        $fotoBase64 = $request->foto_base64 ?? $user->foto_base64;
-        if ($fotoBase64 !== $user->foto_base64) {
+        $fotoBase64 = $request->foto_base64 ?? $fotoBase64Original;
+        if ($fotoBase64 !== $fotoBase64Original && $fotoBase64 !== null && $fotoBase64 !== '') {
             $thumbnails = $this->imageService->generateThumbnails($fotoBase64);
             $user->foto_base64 = $fotoBase64;
             $user->foto_thumbnail_50 = $thumbnails['50'];

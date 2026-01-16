@@ -18,6 +18,13 @@ import {
 } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import {
+    Select,
+    SelectContent,
+    SelectItem,
+    SelectTrigger,
+    SelectValue,
+} from '@/components/ui/select';
 import AppLayout from '@/layouts/app-layout';
 import SettingsLayout from '@/layouts/settings/layout';
 import { edit, retirar as retirarPareja } from '@/routes/pareja';
@@ -30,19 +37,29 @@ const breadcrumbs: BreadcrumbItem[] = [
     },
 ];
 
+interface EquipoData {
+    id: number;
+    numero: number;
+}
+
 interface ParejaData {
     id: number;
     fecha_ingreso: string | null;
-    numero_equipo: number | null;
+    equipo_id: number | null;
+    equipo: EquipoData | null;
     foto_base64: string | null;
     estado: 'activo' | 'retirado';
 }
 
 interface ParejaProps {
     pareja: ParejaData;
+    equipos: EquipoData[];
 }
 
-export default function Pareja({ pareja: parejaProp }: ParejaProps) {
+export default function Pareja({
+    pareja: parejaProp,
+    equipos,
+}: ParejaProps) {
     // Función helper para formatear fecha de ISO a yyyy-MM-dd
     const formatDateForInput = (dateString: string | null | undefined): string => {
         if (!dateString) return '';
@@ -122,21 +139,52 @@ export default function Pareja({ pareja: parejaProp }: ParejaProps) {
                                     </div>
 
                                     <div className="grid gap-2">
-                                        <Label htmlFor="numero_equipo">
-                                            Número del Equipo
+                                        <Label htmlFor="equipo_id">
+                                            Equipo
                                         </Label>
-                                        <Input
-                                            id="numero_equipo"
-                                            type="number"
-                                            className="mt-1 block w-full"
-                                            defaultValue={parejaProp.numero_equipo ?? ''}
-                                            name="numero_equipo"
-                                            placeholder="Ingrese el número del equipo"
-                                            min="0"
+                                        <input
+                                            type="hidden"
+                                            name="equipo_id"
+                                            id="equipo_id"
+                                            value={
+                                                parejaProp.equipo_id
+                                                    ? parejaProp.equipo_id.toString()
+                                                    : ''
+                                            }
                                         />
+                                        <Select
+                                            defaultValue={
+                                                parejaProp.equipo_id
+                                                    ? parejaProp.equipo_id.toString()
+                                                    : 'none'
+                                            }
+                                            onValueChange={(value) => {
+                                                const input = document.getElementById('equipo_id') as HTMLInputElement;
+                                                if (input) {
+                                                    input.value = value === 'none' ? '' : value;
+                                                }
+                                            }}
+                                        >
+                                            <SelectTrigger className="mt-1 block w-full">
+                                                <SelectValue placeholder="Seleccionar equipo (opcional)" />
+                                            </SelectTrigger>
+                                            <SelectContent>
+                                                <SelectItem value="none">
+                                                    Sin equipo
+                                                </SelectItem>
+                                                {equipos.map((equipo: EquipoData) => (
+                                                    <SelectItem
+                                                        key={equipo.id}
+                                                        value={equipo.id.toString()}
+                                                    >
+                                                        Equipo {equipo.numero}
+                                                    </SelectItem>
+                                                ))}
+                                            </SelectContent>
+                                        </Select>
                                         <InputError
                                             className="mt-2"
-                                            message={errors.numero_equipo}
+                                            message={errors.equipo_id}
                                         />
                                     </div>
                                 </div>

@@ -1,5 +1,5 @@
 import { Link, usePage } from '@inertiajs/react';
-import { LayoutGrid, Menu, Search, Users } from 'lucide-react';
+import { Heart, LayoutGrid, Menu, Search, UsersRound } from 'lucide-react';
 
 import { Breadcrumbs } from '@/components/breadcrumbs';
 import { Icon } from '@/components/icon';
@@ -29,6 +29,7 @@ import { useInitials } from '@/hooks/use-initials';
 import { getUserFullName } from '@/lib/user-utils';
 import { cn } from '@/lib/utils';
 import { dashboard } from '@/routes';
+import { index as equiposIndex } from '@/routes/equipos';
 import { index as parejasIndex } from '@/routes/parejas';
 import { type BreadcrumbItem, type NavItem, type SharedData } from '@/types';
 
@@ -55,13 +56,18 @@ export function AppHeader({ breadcrumbs = [] }: AppHeaderProps) {
             href: dashboard(),
             icon: LayoutGrid,
         },
-        // Mostrar Parejas solo si el usuario tiene rol mango o admin
+        // Mostrar Parejas y Equipos solo si el usuario tiene rol mango o admin
         ...(auth.user && (auth.user.rol === 'mango' || auth.user.rol === 'admin')
             ? [
                   {
                       title: 'Parejas',
                       href: parejasIndex(),
-                      icon: Users,
+                      icon: Heart,
+                  } as NavItem,
+                  {
+                      title: 'Equipos',
+                      href: equiposIndex(),
+                      icon: UsersRound,
                   } as NavItem,
               ]
             : []),

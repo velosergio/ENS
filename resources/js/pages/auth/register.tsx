@@ -27,7 +27,7 @@ export default function Register() {
         ella_email: '',
         ella_foto_base64: '',
         fecha_ingreso: '',
-        numero_equipo: '',
+        equipo_id: '',
         pareja_foto_base64: '',
         password: '',
         password_confirmation: '',
@@ -360,23 +360,6 @@ export default function Register() {
                                             }
                                         />
                                         <InputError message={errors.fecha_ingreso} />
-                                    </div>
-
-                                    <div className="grid gap-2">
-                                        <Label htmlFor="numero_equipo">
-                                            Número del Equipo
-                                        </Label>
-                                        <Input
-                                            id="numero_equipo"
-                                            type="number"
-                                            name="numero_equipo"
-                                            placeholder="Ingrese el número del equipo"
-                                            value={data.numero_equipo || ''}
-                                            onChange={(e) =>
-                                                setData('numero_equipo', e.target.value)
-                                            }
-                                        />
-                                        <InputError message={errors.numero_equipo} />
                                     </div>
 
                                     <div className="grid gap-2">

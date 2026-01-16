@@ -32,7 +32,6 @@ class User extends Authenticatable
         'foto_thumbnail_100',
         'foto_thumbnail_500',
         'pareja_id',
-        'equipo_id',
         'rol',
     ];
 
@@ -69,6 +68,14 @@ class User extends Authenticatable
     public function pareja(): BelongsTo
     {
         return $this->belongsTo(Pareja::class);
+    }
+
+    /**
+     * Obtener el equipo al que pertenece el usuario a través de su pareja.
+     */
+    public function equipo(): ?Equipo
+    {
+        return $this->pareja?->equipo;
     }
 
     /**

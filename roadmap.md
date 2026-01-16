@@ -62,23 +62,24 @@ El roadmap está dividido en 10 fases que implementan los módulos del sistema d
 **Objetivo:** Implementar gestión completa de equipos con vista y configuraciones.
 
 ### Infraestructura Base:
-- [ ] Crear modelo `Equipo` con migración
-  - Campos: `nombre`, `numero`, `estado` (activo/inactivo), `responsable_id` (user mango/admin)
-  - Relación con consiliario (agregar `consiliario_nombre` a equipos)
-- [ ] Agregar campo `consiliario_nombre` a tabla `parejas` (migración)
-- [ ] Actualizar modelo `Equipo` con relaciones:
-  - `hasMany` usuarios
+- [x] Crear modelo `Equipo` con migración
+  - Campos: `numero`, `responsable_id` (user mango/admin), `consiliario_nombre`
+- [x] Actualizar modelo `Equipo` con relaciones:
   - `hasMany` parejas
+  - `hasManyThrough` usuarios (a través de parejas)
   - `belongsTo` responsable (User)
-- [ ] Actualizar modelo `User` con relación `belongsTo Equipo`
-- [ ] Actualizar modelo `Pareja` con relación `belongsTo Equipo` y campo consiliario
-- [ ] Crear factory para `Equipo`
-- [ ] Crear seeder inicial con datos de prueba
-- [ ] Revisar y ajustar modelos según necesidades detectadas
-- [ ] Verificar relaciones entre Equipo, Pareja y User
+  - Método `parejaResponsable()` para obtener la pareja del responsable
+  - Scope `buscar()` para búsqueda por número, consiliario y responsable
+- [x] Actualizar modelo `User` con método `equipo()` que accede al equipo a través de su pareja (relación indirecta)
+- [x] Actualizar modelo `Pareja` con relación `belongsTo Equipo` (campo `equipo_id`)
+  - Las parejas acceden al consiliario a través de la relación con el equipo
+- [x] Crear factory para `Equipo` con estados `conResponsable` y `conConsiliario`
+- [x] Actualizar `ParejasSeeder` para crear 12 equipos y distribuir 50 parejas entre ellos
+- [x] Revisar y ajustar modelos según necesidades detectadas
+- [x] Verificar relaciones entre Equipo, Pareja y User
 
 ### Tareas:
-- [ ] Crear controlador `EquipoController` (mango/admin)
+- [x] Crear controlador `EquipoController` (mango/admin)
   - `index`: Listar equipos con búsqueda en tiempo real
   - `create`: Formulario crear equipo
   - `store`: Crear equipo
@@ -88,33 +89,44 @@ El roadmap está dividido en 10 fases que implementan los módulos del sistema d
   - `destroy`: Eliminar equipo
   - `asignarResponsable`: Asignar responsable al equipo
   - `configurarConsiliario`: Configurar consiliario del equipo
-- [ ] Form Requests para validación:
+- [x] Form Requests para validación:
   - `EquipoCreateRequest`
   - `EquipoUpdateRequest`
   - `EquipoAsignarResponsableRequest`
   - `EquipoConfigurarConsiliarioRequest`
-- [ ] Páginas frontend:
+- [x] Páginas frontend (Para usuarios Mango y Admin):
   - Lista de equipos con búsqueda en tiempo real
   - Formulario crear/editar equipo
+  - Scroll infinito
   - Vista detalle de equipo:
     - Información general del equipo
     - Lista de parejas del equipo
     - Lista de usuarios del equipo
     - Configuración de responsable
     - Configuración de consiliario
-  - Filtros: nombre, numero, estado, responsable
-- [ ] Lógica para asignar parejas a equipos
-- [ ] Lógica para actualizar `consiliario_nombre` en parejas cuando se configura en equipo
-- [ ] Agregar permisos `equipos.*` al `PermissionService`
-- [ ] Integrar auditoría para equipos (Fase 8)
-- [ ] Tests para gestión de equipos
+  - Búsqueda en tiempo real por número, consiliario y responsable
+  - Filtros: número y responsable
+- [x] Lógica para asignar parejas a equipos (desde vista de pareja y vista de equipo)
+- [x] Lógica de elevación/degradación automática de roles al asignar/quitar responsable
+  - Al asignar responsable: usuarios de la pareja responsable se elevan a rol `admin`
+  - Al quitar responsable: usuarios de la pareja responsable se degradan a rol `equipista`
+- [x] Agregar permisos `equipos.*` al `PermissionService`:
+  - `equipos.view`, `equipos.create`, `equipos.update`, `equipos.delete`
+  - `equipos.asignar-responsable`, `equipos.configurar-consiliario`
+- [ ] Integrar auditoría para equipos (pendiente para Fase 8)
+- [x] Tests para gestión de equipos (26 tests, 104 aserciones)
 
 ### Entregables:
-- CRUD completo de equipos
-- Vista detalle con lista de parejas y usuarios
-- Configuración de responsable por equipo
-- Configuración de consiliario por equipo
-- Búsqueda y filtros implementados
+- CRUD completo de equipos con validaciones
+- Vista detalle con lista de parejas (scroll infinito) y usuarios del equipo
+- Configuración de responsable por equipo con elevación automática de roles
+- Configuración de consiliario (Padre Consiliario) por equipo
+- Búsqueda en tiempo real por número, consiliario y responsable
+- Filtros por número y responsable
+- Selector de equipos en formularios de parejas (create/edit/settings)
+- Migración de `numero_equipo` a `equipo_id` en tabla `parejas`
+- Eliminación de campo `equipo_id` de tabla `users` (acceso indirecto a través de pareja)
+- Tests completos (26 tests, 104 aserciones)
 
 ---
 

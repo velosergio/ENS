@@ -53,7 +53,11 @@ interface UsuarioData {
 
 interface ParejaData {
     id: number;
-    numero_equipo: number | null;
+    equipo_id: number | null;
+    equipo: {
+        id: number;
+        numero: number;
+    } | null;
     fecha_ingreso: string | null;
     estado: 'activo' | 'retirado';
     foto_base64: string | null;
@@ -75,23 +79,30 @@ interface PaginatedParejas {
     }>;
 }
 
+interface EquipoData {
+    id: number;
+    numero: number;
+}
+
 interface ParejasIndexProps {
     parejas: PaginatedParejas;
     filters: {
         buscar?: string;
         estado?: string;
-        numero_equipo?: string;
+        equipo_id?: string;
     };
+    equipos: EquipoData[];
 }
 
 export default function ParejasIndex({
     parejas,
     filters: initialFilters,
+    equipos,
 }: ParejasIndexProps) {
     const [buscar, setBuscar] = useState(initialFilters.buscar || '');
     const [estado, setEstado] = useState(initialFilters.estado || 'todos');
-    const [numeroEquipo, setNumeroEquipo] = useState(
-        initialFilters.numero_equipo || '',
+    const [equipoId, setEquipoId] = useState(
+        initialFilters.equipo_id || 'all',
     );
     const [expandedIds, setExpandedIds] = useState<Set<number>>(new Set());
 
@@ -104,7 +115,7 @@ export default function ParejasIndex({
                     {
                         buscar: buscar || undefined,
                         estado: estado === 'todos' ? undefined : estado,
-                        numero_equipo: numeroEquipo || undefined,
+                        equipo_id: equipoId === 'all' ? undefined : equipoId,
                     },
                     {
                         preserveState: true,
@@ -117,7 +128,7 @@ export default function ParejasIndex({
 
         return () => clearTimeout(timer);
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [buscar, estado, numeroEquipo]);
+    }, [buscar, estado, equipoId]);
 
     // Filtrar cuando cambian los filtros
     const handleFilterChange = useCallback(() => {
@@ -126,14 +137,14 @@ export default function ParejasIndex({
             {
                 buscar: buscar || undefined,
                 estado: estado === 'todos' ? undefined : estado,
-                numero_equipo: numeroEquipo || undefined,
+                equipo_id: equipoId === 'all' ? undefined : equipoId,
             },
             {
                 preserveState: true,
                 preserveScroll: true,
             },
         );
-    }, [buscar, estado, numeroEquipo]);
+    }, [buscar, estado, equipoId]);
 
     useEffect(() => {
         if (estado !== initialFilters.estado) {
@@ -143,11 +154,12 @@ export default function ParejasIndex({
     }, [estado, handleFilterChange]);
 
     useEffect(() => {
-        if (numeroEquipo !== initialFilters.numero_equipo) {
+        const currentEquipoId = equipoId === 'all' ? undefined : equipoId;
+        if (currentEquipoId !== initialFilters.equipo_id) {
             handleFilterChange();
         }
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [numeroEquipo, handleFilterChange]);
+    }, [equipoId, handleFilterChange]);
 
     const toggleExpand = (id: number) => {
         setExpandedIds((prev) => {
@@ -221,13 +233,25 @@ export default function ParejasIndex({
                         </SelectContent>
                     </Select>
 
-                    <Input
-                        type="number"
-                        placeholder="Número de equipo"
-                        value={numeroEquipo}
-                        onChange={(e) => setNumeroEquipo(e.target.value)}
-                        className="w-full sm:w-[180px]"
-                    />
+                    <Select
+                        value={equipoId}
+                        onValueChange={setEquipoId}
+                    >
+                        <SelectTrigger className="w-full sm:w-[180px]">
+                            <SelectValue placeholder="Equipo" />
+                        </SelectTrigger>
+                        <SelectContent>
+                            <SelectItem value="all">Todos</SelectItem>
+                            {equipos.map((equipo: EquipoData) => (
+                                <SelectItem
+                                    key={equipo.id}
+                                    value={equipo.id.toString()}
+                                >
+                                    Equipo {equipo.numero}
+                                </SelectItem>
+                            ))}
+                        </SelectContent>
+                    </Select>
                 </div>
 
                 {/* Lista de parejas */}
@@ -297,11 +321,11 @@ export default function ParejasIndex({
                                                             </Badge>
                                                         </div>
                                                         <div className="flex flex-wrap items-center gap-4 text-sm text-muted-foreground">
-                                                            {pareja.numero_equipo && (
+                                                            {pareja.equipo && (
                                                                 <span>
                                                                     Equipo:{' '}
                                                                     {
-                                                                        pareja.numero_equipo
+                                                                        pareja.equipo.numero
                                                                     }
                                                                 </span>
                                                             )}

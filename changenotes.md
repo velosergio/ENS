@@ -1,5 +1,13 @@
 # Change Notes
 
+## *0.0.4*
+- **Implementación completa del módulo Equipos (Fase 2)**: CRUD completo de equipos con gestión de responsables y consiliarios. Modelo `Equipo` creado con relaciones `hasMany` parejas, `hasManyThrough` usuarios, y `belongsTo` responsable. Migración de `numero_equipo` a `equipo_id` en tabla `parejas`, eliminación de `equipo_id` de tabla `users` (acceso indirecto a través de pareja). Campo `consiliario_nombre` agregado a tabla `equipos`.
+- **Gestión de responsables**: Sistema de asignación de responsables con elevación automática de roles. Al asignar responsable, usuarios de la pareja se elevan a rol `admin`. Al quitar responsable, se degradan a rol `equipista`. Validación para evitar eliminar equipos con parejas asignadas.
+- **Interfaz de usuario para equipos**: Lista de equipos con búsqueda en tiempo real y scroll infinito. Vista detalle con información general, lista de parejas (scroll infinito) y usuarios del equipo. Formularios crear/editar con selector de responsable. Configuración de "Padre Consiliario" por equipo. Filtros por número y responsable. Navegación visible solo para roles mango/admin.
+- **Integración con módulo Parejas**: Selector de equipos agregado a formularios de parejas (create/edit/settings). Actualización de filtros en lista de parejas para usar selector de equipos en lugar de campo numérico. Relación bidireccional entre parejas y equipos.
+- **Permisos y validaciones**: Permisos `equipos.*` agregados al `PermissionService` (view, create, update, delete, asignar-responsable, configurar-consiliario). Form Requests para validación de todas las operaciones. Tests completos implementados (26 tests, 104 aserciones).
+- **Seeder actualizado**: `ParejasSeeder` modificado para crear 12 equipos y distribuir automáticamente 50 parejas entre ellos rotativamente, permitiendo pruebas realistas del sistema.
+
 ## *0.0.3.2*
 - Implementado sistema de thumbnails para optimización de imágenes: generación automática de 3 tamaños (50x50, 100x100, 500x500) para todas las fotos subidas (pareja, él, ella). Thumbnails generados automáticamente en registro público, módulo de parejas y configuraciones. Migración actualizada para incluir campos de thumbnails en tablas `parejas` y `users`.
 - Optimización de rendimiento: lista de parejas (`/parejas`) ahora usa thumbnails de 50x50 en lugar de imágenes completas, mejorando significativamente los tiempos de carga. Implementado scroll infinito automático usando componente `<InfiniteScroll>` de Inertia v2.

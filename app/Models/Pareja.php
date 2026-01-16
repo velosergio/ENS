@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Pareja extends Model
@@ -18,7 +19,7 @@ class Pareja extends Model
      */
     protected $fillable = [
         'fecha_ingreso',
-        'numero_equipo',
+        'equipo_id',
         'foto_base64',
         'foto_thumbnail_50',
         'foto_thumbnail_100',
@@ -73,6 +74,14 @@ class Pareja extends Model
     }
 
     /**
+     * Obtener el equipo al que pertenece la pareja.
+     */
+    public function equipo(): BelongsTo
+    {
+        return $this->belongsTo(Equipo::class);
+    }
+
+    /**
      * Obtener los usuarios de la pareja.
      */
     public function usuarios(): HasMany
@@ -112,7 +121,9 @@ class Pareja extends Model
     public function scopeBuscar($query, string $termino)
     {
         return $query->where(function ($q) use ($termino) {
-            $q->where('numero_equipo', 'like', "%{$termino}%")
+            $q->whereHas('equipo', function ($query) use ($termino) {
+                $query->where('numero', 'like', "%{$termino}%");
+            })
                 ->orWhereHas('usuarios', function ($query) use ($termino) {
                     $query->where(function ($q) use ($termino) {
                         $q->where('nombres', 'like', "%{$termino}%")

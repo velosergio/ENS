@@ -44,7 +44,7 @@ class CreateNewPareja implements CreatesNewUsers
 
             // Datos de la pareja
             'fecha_ingreso' => ['required', 'date', 'before_or_equal:today'],
-            'numero_equipo' => ['nullable', 'integer', 'min:0'],
+            'equipo_id' => ['nullable', 'exists:equipos,id'],
             'pareja_foto_base64' => ['nullable', 'string'],
             'password' => $this->passwordRules(),
         ])->validate();
@@ -58,7 +58,7 @@ class CreateNewPareja implements CreatesNewUsers
             // Crear la pareja
             $pareja = Pareja::create([
                 'fecha_ingreso' => $input['fecha_ingreso'],
-                'numero_equipo' => isset($input['numero_equipo']) && $input['numero_equipo'] !== '' ? (int) $input['numero_equipo'] : null,
+                'equipo_id' => $input['equipo_id'] ?? null,
                 'foto_base64' => $input['pareja_foto_base64'] ?? null,
                 'foto_thumbnail_50' => $parejaThumbnails['50'],
                 'foto_thumbnail_100' => $parejaThumbnails['100'],
