@@ -1,5 +1,8 @@
 # Change Notes
 
+## *0.0.4.1*
+- **Limpieza de tests**: Eliminados tests de ejemplo (`ExampleTest.php` en Feature y Unit) que venían por defecto con el proyecto. Actualizado `phpunit.xml` para remover la referencia al testsuite "Unit" ya que el directorio está vacío, corrigiendo error en GitHub Actions. Todos los tests pasando (86 tests, 337 aserciones).
+
 ## *0.0.4*
 - **Implementación completa del módulo Equipos (Fase 2)**: CRUD completo de equipos con gestión de responsables y consiliarios. Modelo `Equipo` creado con relaciones `hasMany` parejas, `hasManyThrough` usuarios, y `belongsTo` responsable. Migración de `numero_equipo` a `equipo_id` en tabla `parejas`, eliminación de `equipo_id` de tabla `users` (acceso indirecto a través de pareja). Campo `consiliario_nombre` agregado a tabla `equipos`.
 - **Gestión de responsables**: Sistema de asignación de responsables con elevación automática de roles. Al asignar responsable, usuarios de la pareja se elevan a rol `admin`. Al quitar responsable, se degradan a rol `equipista`. Validación para evitar eliminar equipos con parejas asignadas.
