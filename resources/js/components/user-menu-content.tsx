@@ -25,11 +25,29 @@ export function UserMenuContent({ user }: UserMenuContentProps) {
         router.flushAll();
     };
 
+    // Obtener nombre del usuario actual y su pareja
+    const nombreUsuarioActual = user?.nombres ?? '';
+
+    const pareja = (user as { pareja?: { usuarios?: Array<{ id: number; nombres?: string | null }> } | null })?.pareja;
+    const usuarios = pareja?.usuarios ?? [];
+    const parejaUsuario = usuarios.find((u) => u.id !== user.id);
+    const nombrePareja = parejaUsuario?.nombres ?? '';
+
+    const nombresPareja =
+        nombreUsuarioActual && nombrePareja
+            ? `${nombreUsuarioActual} & ${nombrePareja}`
+            : nombreUsuarioActual || nombrePareja || '';
+
     return (
         <>
             <DropdownMenuLabel className="p-0 font-normal">
-                <div className="flex items-center gap-2 px-1 py-1.5 text-left text-sm">
+                <div className="flex flex-col gap-1 px-1 py-1.5 text-left text-sm">
                     <UserInfo user={user} showEmail={true} />
+                    {nombresPareja && (
+                        <span className="truncate text-xs text-muted-foreground text-left">
+                            {nombresPareja}
+                        </span>
+                    )}
                 </div>
             </DropdownMenuLabel>
             <DropdownMenuSeparator />

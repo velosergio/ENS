@@ -7,6 +7,7 @@ import { Separator } from '@/components/ui/separator';
 import { useActiveUrl } from '@/hooks/use-active-url';
 import { cn, toUrl } from '@/lib/utils';
 import { edit as editAppearance } from '@/routes/appearance';
+import { edit as editPareja } from '@/routes/pareja';
 import { edit } from '@/routes/profile';
 import { show } from '@/routes/two-factor';
 import { edit as editPassword } from '@/routes/user-password';
@@ -16,6 +17,11 @@ const sidebarNavItems: NavItem[] = [
     {
         title: 'Perfil',
         href: edit(),
+        icon: null,
+    },
+    {
+        title: 'Pareja',
+        href: editPareja(),
         icon: null,
     },
     {

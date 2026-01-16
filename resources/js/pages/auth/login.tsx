@@ -100,8 +100,8 @@ export default function Login({
                         {canRegister && (
                             <div className="text-center text-sm text-muted-foreground">
                                 ¿No tienes una cuenta?{' '}
-                                <TextLink href="/registro/paso-uno" tabIndex={5}>
-                                    Regístrate
+                                <TextLink href="/register" tabIndex={5}>
+                                    Registrar Pareja
                                 </TextLink>
                             </div>
                         )}

@@ -1,11 +1,28 @@
 import { useCallback } from 'react';
 
-export function useInitials() {
-    return useCallback((fullName: string): string => {
-        const names = fullName.trim().split(' ');
+import { type User } from '@/types';
+import { getUserFullName } from '@/lib/user-utils';
 
-        if (names.length === 0) return '';
-        if (names.length === 1) return names[0].charAt(0).toUpperCase();
+export function useInitials() {
+    return useCallback((userOrName: User | string): string => {
+        const fullName =
+            typeof userOrName === 'string'
+                ? userOrName.trim()
+                : getUserFullName(userOrName);
+
+        if (!fullName) {
+            return '';
+        }
+
+        const names = fullName.split(' ').filter((n) => n.length > 0);
+
+        if (names.length === 0) {
+            return '';
+        }
+
+        if (names.length === 1) {
+            return names[0].charAt(0).toUpperCase();
+        }
 
         const firstInitial = names[0].charAt(0);
         const lastInitial = names[names.length - 1].charAt(0);

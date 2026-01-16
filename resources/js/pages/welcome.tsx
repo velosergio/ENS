@@ -42,11 +42,11 @@ export default function Welcome({
                         ) : (
                             <>
                                 <Button asChild variant="outline" size="lg" className="w-full sm:w-auto">
-                                    <Link href="/iniciar-sesion">Iniciar sesión</Link>
+                                    <Link href="/login">Iniciar sesión</Link>
                                 </Button>
                                 {canRegister && (
                                     <Button asChild size="lg" className="w-full sm:w-auto">
-                                        <Link href="/registro/paso-uno">Registrarse</Link>
+                                        <Link href="/register">Registrar Pareja</Link>
                                     </Button>
                                 )}
                             </>

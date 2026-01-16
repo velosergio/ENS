@@ -25,7 +25,6 @@ const breadcrumbs: BreadcrumbItem[] = [
 
 interface ProfileUser {
     id: number;
-    name: string;
     nombres: string | null;
     apellidos: string | null;
     celular: string | null;
@@ -281,24 +280,6 @@ export default function Profile({
                                         Información de Cuenta
                                     </h2>
 
-                                    <div className="grid gap-2">
-                                        <Label htmlFor="name">
-                                            Nombre de Usuario <span className="text-destructive">*</span>
-                                        </Label>
-                                        <Input
-                                            id="name"
-                                            className="mt-1 block w-full"
-                                            defaultValue={auth.user.name}
-                                            name="name"
-                                            required
-                                            autoComplete="name"
-                                            placeholder="Nombre completo"
-                                        />
-                                        <InputError
-                                            className="mt-2"
-                                            message={errors.name}
-                                        />
-                                    </div>
 
                                     <div className="grid gap-2">
                                         <Label htmlFor="email">

@@ -4,6 +4,7 @@ namespace App\Models;
 
 // use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Laravel\Fortify\TwoFactorAuthenticatable;
@@ -19,7 +20,6 @@ class User extends Authenticatable
      * @var list<string>
      */
     protected $fillable = [
-        'name',
         'email',
         'password',
         'nombres',
@@ -30,6 +30,7 @@ class User extends Authenticatable
         'foto_base64',
         'pareja_id',
         'equipo_id',
+        'rol',
     ];
 
     /**
@@ -60,18 +61,50 @@ class User extends Authenticatable
     }
 
     /**
-     * Obtener la relación con la pareja.
+     * Obtener la pareja a la que pertenece el usuario.
      */
-    public function pareja()
+    public function pareja(): BelongsTo
     {
-        return $this->belongsTo(User::class, 'pareja_id');
+        return $this->belongsTo(Pareja::class);
     }
 
     /**
-     * Obtener usuarios que tienen a este usuario como pareja.
+     * Verificar si el usuario es mango.
      */
-    public function parejaDe()
+    public function esMango(): bool
     {
-        return $this->hasOne(User::class, 'pareja_id');
+        return $this->rol === 'mango';
+    }
+
+    /**
+     * Verificar si el usuario es admin.
+     */
+    public function esAdmin(): bool
+    {
+        return $this->rol === 'admin';
+    }
+
+    /**
+     * Verificar si el usuario es equipista.
+     */
+    public function esEquipista(): bool
+    {
+        return $this->rol === 'equipista';
+    }
+
+    /**
+     * Verificar si el usuario tiene un rol específico.
+     */
+    public function tieneRol(string $rol): bool
+    {
+        return $this->rol === $rol;
+    }
+
+    /**
+     * Verificar si el usuario tiene alguno de los roles especificados.
+     */
+    public function tieneAlgunRol(array $roles): bool
+    {
+        return in_array($this->rol, $roles);
     }
 }

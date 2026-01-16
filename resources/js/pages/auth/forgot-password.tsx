@@ -60,7 +60,7 @@ export default function ForgotPassword({ status }: { status?: string }) {
 
                 <div className="space-x-1 text-center text-sm text-muted-foreground">
                     <span>O, regresa a</span>
-                    <TextLink href="/iniciar-sesion">iniciar sesión</TextLink>
+                    <TextLink href="/login">iniciar sesión</TextLink>
                 </div>
             </div>
         </AuthLayout>

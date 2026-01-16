@@ -28,7 +28,6 @@ class ProfileUpdateRequest extends FormRequest
     public function messages(): array
     {
         return [
-            'name.required' => 'El campo nombre es obligatorio.',
             'nombres.required' => 'El campo nombres es obligatorio.',
             'apellidos.required' => 'El campo apellidos es obligatorio.',
             'celular.required' => 'El campo celular es obligatorio.',

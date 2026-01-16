@@ -11,17 +11,28 @@ return new class extends Migration
      */
     public function up(): void
     {
+        // Crear tabla parejas primero
+        Schema::create('parejas', function (Blueprint $table) {
+            $table->id();
+            $table->date('fecha_ingreso')->nullable();
+            $table->smallInteger('numero_equipo')->nullable();
+            $table->longText('foto_base64')->nullable();
+            $table->enum('estado', ['activo', 'retirado'])->default('activo');
+            $table->timestamps();
+        });
+
+        // Crear tabla users con relación a parejas
         Schema::create('users', function (Blueprint $table) {
             $table->id();
-            $table->string('name');
             $table->string('nombres')->nullable();
             $table->string('apellidos')->nullable();
             $table->string('celular', 20)->nullable();
             $table->date('fecha_nacimiento')->nullable();
             $table->enum('sexo', ['masculino', 'femenino'])->nullable();
             $table->longText('foto_base64')->nullable();
-            $table->foreignId('pareja_id')->nullable()->constrained('users')->nullOnDelete();
+            $table->foreignId('pareja_id')->nullable()->constrained('parejas')->nullOnDelete();
             $table->foreignId('equipo_id')->nullable();
+            $table->enum('rol', ['mango', 'admin', 'equipista'])->default('equipista');
             $table->string('email')->unique();
             $table->timestamp('email_verified_at')->nullable();
             $table->string('password');
@@ -53,8 +64,9 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('users');
-        Schema::dropIfExists('password_reset_tokens');
         Schema::dropIfExists('sessions');
+        Schema::dropIfExists('password_reset_tokens');
+        Schema::dropIfExists('users');
+        Schema::dropIfExists('parejas');
     }
 };

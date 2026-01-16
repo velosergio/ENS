@@ -15,7 +15,6 @@ trait ProfileValidationRules
     protected function profileRules(?int $userId = null): array
     {
         return [
-            'name' => $this->nameRules(),
             'nombres' => ['required', 'string', 'max:255'],
             'apellidos' => ['required', 'string', 'max:255'],
             'celular' => ['required', 'string', 'max:20'],
@@ -24,16 +23,6 @@ trait ProfileValidationRules
             'foto_base64' => ['nullable', 'string'],
             'email' => $this->emailRules($userId),
         ];
-    }
-
-    /**
-     * Get the validation rules used to validate user names.
-     *
-     * @return array<int, \Illuminate\Contracts\Validation\Rule|array<mixed>|string>
-     */
-    protected function nameRules(): array
-    {
-        return ['required', 'string', 'max:255'];
     }
 
     /**

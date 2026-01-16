@@ -26,7 +26,6 @@ class ProfileController extends Controller
             'status' => $request->session()->get('status'),
             'user' => [
                 'id' => $user->id,
-                'name' => $user->name,
                 'nombres' => $user->nombres,
                 'apellidos' => $user->apellidos,
                 'celular' => $user->celular,

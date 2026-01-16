@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\Settings\ParejaController;
 use App\Http\Controllers\Settings\PasswordController;
 use App\Http\Controllers\Settings\ProfileController;
 use App\Http\Controllers\Settings\TwoFactorAuthenticationController;
@@ -12,6 +13,10 @@ Route::middleware(['auth'])->group(function () {
 
     Route::get('configuracion/perfil', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::patch('configuracion/perfil', [ProfileController::class, 'update'])->name('profile.update');
+
+    Route::get('configuracion/pareja', [ParejaController::class, 'edit'])->name('pareja.edit');
+    Route::patch('configuracion/pareja', [ParejaController::class, 'update'])->name('pareja.update');
+    Route::post('configuracion/pareja/retirar', [ParejaController::class, 'retirar'])->name('pareja.retirar');
 });
 
 Route::middleware(['auth', 'verified'])->group(function () {
