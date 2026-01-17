@@ -1,5 +1,5 @@
 import { Link, usePage } from '@inertiajs/react';
-import { Heart, LayoutGrid, UsersRound } from 'lucide-react';
+import { Calendar as CalendarIcon, Heart, LayoutGrid, UsersRound } from 'lucide-react';
 
 import { NavMain } from '@/components/nav-main';
 import { NavUser } from '@/components/nav-user';
@@ -13,6 +13,7 @@ import {
     SidebarMenuItem,
 } from '@/components/ui/sidebar';
 import { dashboard } from '@/routes';
+import { index as calendarioIndex } from '@/routes/calendario';
 import { index as equiposIndex } from '@/routes/equipos';
 import { index as parejasIndex } from '@/routes/parejas';
 import { type NavItem, type SharedData } from '@/types';
@@ -28,6 +29,11 @@ export function AppSidebar() {
             title: 'Panel de control',
             href: dashboard(),
             icon: LayoutGrid,
+        },
+        {
+            title: 'Calendario',
+            href: calendarioIndex(),
+            icon: CalendarIcon,
         },
         // Mostrar Parejas y Equipos solo si el usuario tiene rol mango o admin
         ...(auth.user && (auth.user.rol === 'mango' || auth.user.rol === 'admin')

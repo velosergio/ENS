@@ -5,44 +5,57 @@ import Heading from '@/components/heading';
 import { Button } from '@/components/ui/button';
 import { Separator } from '@/components/ui/separator';
 import { useActiveUrl } from '@/hooks/use-active-url';
+import { useCan } from '@/lib/permissions';
 import { cn, toUrl } from '@/lib/utils';
 import { edit as editAppearance } from '@/routes/appearance';
+import { edit as editCalendario } from '@/routes/calendario/configuracion';
 import { edit as editPareja } from '@/routes/pareja';
 import { edit } from '@/routes/profile';
 import { show } from '@/routes/two-factor';
 import { edit as editPassword } from '@/routes/user-password';
 import { type NavItem } from '@/types';
 
-const sidebarNavItems: NavItem[] = [
-    {
-        title: 'Perfil',
-        href: edit(),
-        icon: null,
-    },
-    {
-        title: 'Pareja',
-        href: editPareja(),
-        icon: null,
-    },
-    {
-        title: 'Contraseña',
-        href: editPassword(),
-        icon: null,
-    },
-    {
-        title: 'Autenticación de Dos Factores',
-        href: show(),
-        icon: null,
-    },
-    {
-        title: 'Apariencia',
-        href: editAppearance(),
-        icon: null,
-    },
-];
-
 export default function SettingsLayout({ children }: PropsWithChildren) {
     const { urlIsActive } = useActiveUrl();
+    const can = useCan('calendario', 'configurar');
+
+    const sidebarNavItems: NavItem[] = [
+        {
+            title: 'Perfil',
+            href: edit(),
+            icon: null,
+        },
+        {
+            title: 'Pareja',
+            href: editPareja(),
+            icon: null,
+        },
+        {
+            title: 'Contraseña',
+            href: editPassword(),
+            icon: null,
+        },
+        {
+            title: 'Autenticación de Dos Factores',
+            href: show(),
+            icon: null,
+        },
+        {
+            title: 'Apariencia',
+            href: editAppearance(),
+            icon: null,
+        },
+        // Agregar Calendario solo si tiene permiso de configurar
+        ...(can
+            ? [
+                  {
+                      title: 'Calendario',
+                      href: editCalendario(),
+                      icon: null,
+                  } as NavItem,
+              ]
+            : []),
+    ];
 
     // When server-side rendering, we only render the layout on the client...
     if (typeof window === 'undefined') {

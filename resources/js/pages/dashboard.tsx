@@ -1,8 +1,9 @@
 import { Head } from '@inertiajs/react';
 
+import AgendaCard from '@/components/agenda-card';
 import AppLayout from '@/layouts/app-layout';
 import { dashboard } from '@/routes';
-import { type BreadcrumbItem } from '@/types';
+import { type BreadcrumbItem, type TipoEventoCalendario } from '@/types';
 
 const breadcrumbs: BreadcrumbItem[] = [
     {
@@ -22,9 +23,20 @@ interface DashboardProps {
             sexo?: 'masculino' | 'femenino' | null;
         }>;
     } | null;
+    eventosProximos?: Array<{
+        id: string;
+        titulo: string;
+        fecha_inicio: string;
+        fecha_fin?: string;
+        allDay: boolean;
+        tipo: TipoEventoCalendario;
+        alcance: 'equipo' | 'global';
+        color: string;
+        icono?: string | null;
+    }>;
 }
 
-export default function Dashboard({ pareja }: DashboardProps) {
+export default function Dashboard({ pareja, eventosProximos = [] }: DashboardProps) {
     const usuarios = pareja?.usuarios ?? [];
 
     // Obtener nombres de ambos integrantes
@@ -45,10 +57,16 @@ export default function Dashboard({ pareja }: DashboardProps) {
     return (
         <AppLayout breadcrumbs={breadcrumbs}>
             <Head title="Panel de control" />
-            <div className="flex h-full flex-1 flex-col items-center justify-center p-6">
-                <h1 className="text-4xl font-bold text-foreground">
-                    {saludo}
-                </h1>
+            <div className="flex h-full flex-1 flex-col gap-6 p-6">
+                <div className="flex flex-col items-center justify-center">
+                    <h1 className="text-4xl font-bold text-foreground">
+                        {saludo}
+                    </h1>
+                </div>
+                
+                <div className="mx-auto w-full max-w-4xl">
+                    <AgendaCard eventos={eventosProximos} />
+                </div>
             </div>
         </AppLayout>
     );

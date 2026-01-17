@@ -36,8 +36,104 @@ Route::middleware(['auth'])->group(function () {
     Route::get('dashboard', function (Request $request) {
         $user = $request->user()->load('pareja.usuarios');
 
+        // Obtener próximos eventos (próximos 14 días)
+        $fechaInicio = now()->format('Y-m-d');
+        $fechaFin = now()->addDays(14)->format('Y-m-d');
+
+        $query = \App\Models\EventoCalendario::query()
+            ->with(['creadoPor', 'equipo']);
+
+        // Filtrado según rol (misma lógica que CalendarController)
+        if ($user->esMango()) {
+            // Mango ve todos los eventos
+        } else {
+            // Admin/Equipista ven eventos de su equipo + eventos globales
+            $equipoId = $user->equipo()?->id;
+            if ($equipoId) {
+                $query->where(function ($q) use ($equipoId) {
+                    $q->where('alcance', 'global')
+                        ->orWhere(function ($query) use ($equipoId) {
+                            $query->where('alcance', 'equipo')
+                                ->where('equipo_id', $equipoId);
+                        });
+                });
+            } else {
+                // Si no tiene equipo, solo eventos globales
+                $query->where('alcance', 'global');
+            }
+        }
+
+        // Filtrar por rango de fechas y ordenar por fecha de inicio
+        $eventos = $query->porRangoFechas($fechaInicio, $fechaFin)
+            ->orderBy('fecha_inicio', 'asc')
+            ->orderBy('hora_inicio', 'asc')
+            ->limit(7)
+            ->get();
+
+        // Obtener configuraciones para colores e iconos por defecto
+        $configuraciones = \App\Models\ConfiguracionCalendario::todas();
+
+        // Formatear eventos para el dashboard
+        $eventosFormateados = $eventos->map(function ($evento) use ($configuraciones) {
+            $formato = $evento->toFullCalendarFormat($configuraciones);
+
+            return [
+                'id' => $formato['id'],
+                'titulo' => $formato['title'],
+                'fecha_inicio' => $formato['start'],
+                'fecha_fin' => $formato['end'],
+                'allDay' => $formato['allDay'],
+                'tipo' => $evento->tipo,
+                'alcance' => $evento->alcance,
+                'color' => $formato['backgroundColor'],
+                'icono' => $evento->icono ?? ($configuraciones[$evento->tipo]['icono'] ?? null),
+            ];
+        })->toArray();
+
+        // Obtener cumpleaños próximos (próximos 14 días)
+        $cumpleanosService = new \App\Services\CumpleanosService;
+        $configuracionCumpleanos = $configuraciones['cumpleanos'] ?? ['color' => '#ec4899', 'icono' => 'Cake'];
+        $cumpleanos = $cumpleanosService->obtenerCumpleanosEnRango($fechaInicio, $fechaFin, $configuracionCumpleanos);
+
+        // Formatear cumpleaños para el dashboard (mismo formato que eventos)
+        $cumpleanosFormateados = array_map(function ($cumpleano) use ($configuracionCumpleanos) {
+            return [
+                'id' => $cumpleano['id'],
+                'titulo' => $cumpleano['title'],
+                'fecha_inicio' => $cumpleano['start'],
+                'fecha_fin' => $cumpleano['end'],
+                'allDay' => $cumpleano['allDay'],
+                'tipo' => 'cumpleanos',
+                'alcance' => 'global',
+                'color' => $cumpleano['backgroundColor'],
+                'icono' => $configuracionCumpleanos['icono'] ?? 'Cake',
+            ];
+        }, $cumpleanos);
+
+        // Combinar eventos y cumpleaños, ordenar por fecha
+        $todosLosEventos = array_merge($eventosFormateados, $cumpleanosFormateados);
+
+        // Ordenar por fecha de inicio (tomar solo la fecha, no la hora completa)
+        usort($todosLosEventos, function ($a, $b) {
+            $fechaAStr = is_array($a['fecha_inicio']) ? $a['fecha_inicio'][0] : explode('T', $a['fecha_inicio'])[0];
+            $fechaBStr = is_array($b['fecha_inicio']) ? $b['fecha_inicio'][0] : explode('T', $b['fecha_inicio'])[0];
+
+            $fechaA = strtotime($fechaAStr);
+            $fechaB = strtotime($fechaBStr);
+
+            if ($fechaA === $fechaB) {
+                return 0;
+            }
+
+            return $fechaA < $fechaB ? -1 : 1;
+        });
+
+        // Limitar a 7 eventos más próximos
+        $eventosProximos = array_slice($todosLosEventos, 0, 7);
+
         return Inertia::render('dashboard', [
             'pareja' => $user->pareja,
+            'eventosProximos' => $eventosProximos,
         ]);
     })->name('dashboard');
 });
@@ -68,6 +164,30 @@ Route::middleware(['auth', 'permission:equipos,view'])->group(function () {
     Route::post('equipos/{equipo}/configurar-consiliario', [\App\Http\Controllers\EquipoController::class, 'configurarConsiliario'])
         ->middleware('permission:equipos,configurar-consiliario')
         ->name('equipos.configurar-consiliario');
+});
+
+// Módulo de Calendario (todos los usuarios autenticados)
+Route::middleware(['auth', 'permission:calendario,view'])->group(function () {
+    Route::get('calendario', [\App\Http\Controllers\CalendarController::class, 'index'])->name('calendario.index');
+    Route::get('calendario/events', [\App\Http\Controllers\CalendarController::class, 'events'])->name('calendario.events');
+
+    Route::middleware('permission:calendario,create')->group(function () {
+        Route::post('calendario', [\App\Http\Controllers\CalendarController::class, 'store'])->name('calendario.store');
+    });
+
+    // Ruta específica antes de la ruta dinámica
+    Route::get('calendario/exportar', [\App\Http\Controllers\CalendarController::class, 'exportar'])->name('calendario.exportar');
+
+    Route::get('calendario/{evento}', [\App\Http\Controllers\CalendarController::class, 'show'])->name('calendario.show');
+
+    Route::middleware('permission:calendario,update')->group(function () {
+        Route::patch('calendario/{evento}', [\App\Http\Controllers\CalendarController::class, 'update'])->name('calendario.update');
+        Route::post('calendario/{evento}/fecha', [\App\Http\Controllers\CalendarController::class, 'updateFecha'])->name('calendario.update-fecha');
+    });
+
+    Route::middleware('permission:calendario,delete')->group(function () {
+        Route::delete('calendario/{evento}', [\App\Http\Controllers\CalendarController::class, 'destroy'])->name('calendario.destroy');
+    });
 });
 
 require __DIR__.'/settings.php';

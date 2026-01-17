@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\Settings\CalendarioController;
 use App\Http\Controllers\Settings\ParejaController;
 use App\Http\Controllers\Settings\PasswordController;
 use App\Http\Controllers\Settings\ProfileController;
@@ -35,4 +36,10 @@ Route::middleware(['auth', 'verified'])->group(function () {
 
     Route::get('configuracion/dos-factores', [TwoFactorAuthenticationController::class, 'show'])
         ->name('two-factor.show');
+});
+
+// Configuración de Calendario (solo mango/admin)
+Route::middleware(['auth', 'permission:calendario,configurar'])->group(function () {
+    Route::get('configuracion/calendario', [CalendarioController::class, 'edit'])->name('calendario.configuracion.edit');
+    Route::patch('configuracion/calendario', [CalendarioController::class, 'update'])->name('calendario.configuracion.update');
 });

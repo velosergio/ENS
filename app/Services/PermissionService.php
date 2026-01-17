@@ -66,6 +66,15 @@ class PermissionService
             'configurar-consiliario' => ['roles' => ['mango', 'admin']],
         ],
 
+        // Módulo: Calendario
+        'calendario' => [
+            'view' => ['roles' => ['mango', 'admin', 'equipista']],
+            'create' => ['roles' => ['mango', 'admin', 'equipista']],
+            'update' => ['roles' => ['mango', 'admin', 'equipista']], // Lógica especial: solo sus eventos o mango/admin todos
+            'delete' => ['roles' => ['mango', 'admin', 'equipista']], // Lógica especial: solo sus eventos o mango/admin todos
+            'configurar' => ['roles' => ['mango', 'admin']], // Configurar colores e iconos
+        ],
+
         // Módulo: Configuración del Sistema
         'system' => [
             'view' => ['roles' => ['mango']],

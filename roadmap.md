@@ -113,7 +113,6 @@ El roadmap está dividido en 10 fases que implementan los módulos del sistema d
 - [x] Agregar permisos `equipos.*` al `PermissionService`:
   - `equipos.view`, `equipos.create`, `equipos.update`, `equipos.delete`
   - `equipos.asignar-responsable`, `equipos.configurar-consiliario`
-- [ ] Integrar auditoría para equipos (pendiente para Fase 8)
 - [x] Tests para gestión de equipos (26 tests, 104 aserciones)
 
 ### Entregables:
@@ -132,39 +131,53 @@ El roadmap está dividido en 10 fases que implementan los módulos del sistema d
 
 ## Fase 3: Módulo Calendario
 
-**Objetivo:** Implementar calendario que muestre eventos, formaciones, retiro espiritual, cumpleaños y aniversarios.
+**Objetivo:** Implementar calendario que muestre eventos, formaciones, retiro espiritual, cumpleaños y aniversarios y permita crearlos de forma facil.
 
 ### Infraestructura Base:
-- [ ] Revisar y ajustar modelos según necesidades detectadas
-- [ ] Verificar relaciones necesarias para el calendario
-- [ ] Actualizar migraciones si es necesario
-- [ ] Ajustar factories si hay cambios
+- [x] Revisar y ajustar modelos según necesidades detectadas
+- [x] Verificar relaciones necesarias para el calendario
+- [x] Actualizar migraciones si es necesario
+- [x] Ajustar factories si hay cambios
+- [x] Usar FullCalendar para React
 
 ### Tareas:
-- [ ] Crear componente `Calendar` (frontend)
+- [x] Crear componente `Calendar` (frontend)
   - Vista mensual (por defecto)
   - Vista semanal
   - Vista diaria
   - Navegación entre fechas
-- [ ] Crear controlador `CalendarController`
+- [x] Crear controlador `CalendarController`
   - `index`: Retornar eventos del mes/semana/día
   - `events`: API endpoint para obtener eventos en rango de fechas
-- [ ] Lógica para mostrar:
-  - Eventos ENS (del equipo del usuario) - cuando exista Fase 6
-  - Formaciones (Fase 7)
-  - Cumpleaños (Fase 4)
-  - Aniversarios (Fase 4)
-- [ ] Colores diferentes por tipo de evento
-- [ ] Integración con Google Calendar (opcional, Fase futura)
-  - Exportar eventos a Google Calendar
-  - Sincronización bidireccional (futuro)
-- [ ] Página frontend del calendario
-- [ ] Tests para calendario
+  - `store`: Crear eventos
+  - `show`: Ver detalle de evento
+  - `update`: Actualizar eventos
+  - `destroy`: Eliminar eventos
+  - `updateFecha`: Actualizar fecha via drag & drop
+  - `exportar`: Exportar calendario a formato .ics
+- [x] Lógica para mostrar:
+  - Eventos del calendario (general, formación, retiro espiritual, reunión de equipo)
+  - Cumpleaños (automáticos desde `fecha_nacimiento` de usuarios)
+  - Eventos ENS (del equipo del usuario) - pendiente para Fase 6
+  - Formaciones (Fase 7) - pendiente
+  - Aniversarios (Fase 4) - pendiente
+- [x] Colores diferentes por tipo de evento (configurables por admin/mango)
+- [x] Integración con exportación .ics
+  - Exportar calendario completo a formato .ics
+  - Sincronización bidireccional con Google Calendar (pendiente para fase futura)
+- [x] Página frontend del calendario (`/calendario`)
+- [x] Tests para calendario (63 tests pasando)
 
 ### Entregables:
-- Calendario funcional con vistas mensual/semanal/diaria
-- Muestra eventos, formaciones, cumpleaños y aniversarios
-- Colores diferenciados por tipo
+- Calendario funcional con vistas mensual/semanal/diaria/lista
+- Muestra eventos (general, formación, retiro espiritual, reunión de equipo) y cumpleaños
+- Colores e iconos diferenciados por tipo (configurables por admin/mango)
+- CRUD completo de eventos con modales
+- Drag & drop para mover eventos
+- Filtros por tipo de evento
+- Exportación a formato .ics
+- Card de agenda en dashboard con próximos eventos (7 eventos más próximos)
+- 63 tests pasando cubriendo todas las funcionalidades
 
 ---
 

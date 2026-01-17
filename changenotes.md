@@ -1,5 +1,8 @@
 # Change Notes
 
+## *0.0.5*
+- **Implementación completa del módulo Calendario (Fase 3)**: Calendario con FullCalendar (vistas mensual/semanal/diaria/lista), CRUD de eventos con modales, drag & drop, filtros, exportación .ics, cumpleaños automáticos, configuración de colores/iconos, card de agenda en dashboard. 63 tests pasando.
+
 ## *0.0.4.4*
 - Migrado por completo a sistema de almacenamiento local
 
