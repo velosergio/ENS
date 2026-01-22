@@ -29,6 +29,7 @@ class UserFactory extends Factory
         return [
             'nombres' => $nombres,
             'apellidos' => fake()->lastName(),
+            'cedula' => fake()->numerify('##########'),
             'celular' => fake()->phoneNumber(),
             'fecha_nacimiento' => fake()->dateTimeBetween('-50 years', '-20 years'),
             'sexo' => $sexo,

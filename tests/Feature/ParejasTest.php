@@ -202,7 +202,7 @@ test('can create pareja with valid data', function () {
         'ella_fecha_nacimiento' => '1992-05-15',
         'ella_email' => 'maria@example.com',
         'ella_foto' => UploadedFile::fake()->image('ella.jpg', 800, 600),
-        'fecha_ingreso' => '2024-01-01',
+        'fecha_acogida' => '2024-01-01',
         'equipo_id' => $equipo->id,
         'pareja_foto' => UploadedFile::fake()->image('pareja.jpg', 800, 600),
         'password' => 'Password123!',
@@ -244,7 +244,7 @@ test('cannot create pareja with duplicate emails', function () {
         'ella_fecha_nacimiento' => '1992-05-15',
         'ella_email' => 'maria@example.com',
         'ella_foto' => UploadedFile::fake()->image('ella.jpg', 800, 600),
-        'fecha_ingreso' => '2024-01-01',
+        'fecha_acogida' => '2024-01-01',
         'numero_equipo' => 5,
         'pareja_foto' => UploadedFile::fake()->image('pareja.jpg', 800, 600),
         'password' => 'Password123!',
@@ -274,7 +274,7 @@ test('can update pareja', function () {
     $ella = $pareja->ella();
 
     $data = [
-        'fecha_ingreso' => '2024-02-01',
+        'fecha_acogida' => '2024-02-01',
         'equipo_id' => $equipo->id,
         'estado' => 'activo',
         'pareja_foto' => UploadedFile::fake()->image('pareja.jpg', 800, 600),

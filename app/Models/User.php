@@ -26,6 +26,7 @@ class User extends Authenticatable
         'password',
         'nombres',
         'apellidos',
+        'cedula',
         'celular',
         'fecha_nacimiento',
         'sexo',

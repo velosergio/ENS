@@ -38,7 +38,7 @@ interface ParejaResponsableData {
 
 interface ParejaData {
     id: number;
-    fecha_ingreso: string | null;
+    fecha_acogida: string | null;
     estado: 'activo' | 'retirado';
     foto_thumbnail_50: string | null;
     el: {

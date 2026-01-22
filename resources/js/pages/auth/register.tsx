@@ -1,6 +1,6 @@
 import { useForm, Head } from '@inertiajs/react';
 import { Info } from 'lucide-react';
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 
 import InputError from '@/components/input-error';
 import TextLink from '@/components/text-link';
@@ -26,7 +26,10 @@ export default function Register() {
         ella_fecha_nacimiento: '',
         ella_email: '',
         ella_foto: null as File | null,
-        fecha_ingreso: '',
+        fecha_acogida: '',
+        fecha_boda: '',
+        el_cedula: '',
+        ella_cedula: '',
         equipo_id: '',
         pareja_foto: null as File | null,
         password: '',
@@ -124,6 +127,21 @@ export default function Register() {
                                             }
                                         />
                                         <InputError message={errors.el_apellidos} />
+                                    </div>
+
+                                    <div className="grid gap-2">
+                                        <Label htmlFor="el_cedula">Cédula (Opcional)</Label>
+                                        <Input
+                                            id="el_cedula"
+                                            type="text"
+                                            name="el_cedula"
+                                            placeholder="Ingresa el número de cédula"
+                                            value={data.el_cedula || ''}
+                                            onChange={(e) =>
+                                                setData('el_cedula', e.target.value)
+                                            }
+                                        />
+                                        <InputError message={errors.el_cedula} />
                                     </div>
 
                                     <div className="grid gap-2">
@@ -240,6 +258,21 @@ export default function Register() {
                                     </div>
 
                                     <div className="grid gap-2">
+                                        <Label htmlFor="ella_cedula">Cédula (Opcional)</Label>
+                                        <Input
+                                            id="ella_cedula"
+                                            type="text"
+                                            name="ella_cedula"
+                                            placeholder="Ingresa el número de cédula"
+                                            value={data.ella_cedula || ''}
+                                            onChange={(e) =>
+                                                setData('ella_cedula', e.target.value)
+                                            }
+                                        />
+                                        <InputError message={errors.ella_cedula} />
+                                    </div>
+
+                                    <div className="grid gap-2">
                                         <Label htmlFor="ella_celular">Celular</Label>
                                         <Input
                                             id="ella_celular"
@@ -321,25 +354,46 @@ export default function Register() {
                                 <h2 className="text-lg font-semibold">Datos de la Pareja</h2>
                                 <div className="grid gap-4">
                                     <div className="grid gap-2">
-                                        <Label htmlFor="fecha_ingreso">
+                                        <Label htmlFor="fecha_acogida">
                                             Fecha de Acogida al Movimiento
                                         </Label>
                                         <Input
-                                            id="fecha_ingreso"
+                                            id="fecha_acogida"
                                             type="date"
                                             required
-                                            name="fecha_ingreso"
+                                            name="fecha_acogida"
                                             max={today}
                                             value={
-                                                data.fecha_ingreso
-                                                    ? formatDateForInput(data.fecha_ingreso)
+                                                data.fecha_acogida
+                                                    ? formatDateForInput(data.fecha_acogida)
                                                     : ''
                                             }
                                             onChange={(e) =>
-                                                setData('fecha_ingreso', e.target.value)
+                                                setData('fecha_acogida', e.target.value)
                                             }
                                         />
-                                        <InputError message={errors.fecha_ingreso} />
+                                        <InputError message={errors.fecha_acogida} />
+                                    </div>
+
+                                    <div className="grid gap-2">
+                                        <Label htmlFor="fecha_boda">
+                                            Fecha de Boda (Opcional)
+                                        </Label>
+                                        <Input
+                                            id="fecha_boda"
+                                            type="date"
+                                            name="fecha_boda"
+                                            max={today}
+                                            value={
+                                                data.fecha_boda
+                                                    ? formatDateForInput(data.fecha_boda)
+                                                    : ''
+                                            }
+                                            onChange={(e) =>
+                                                setData('fecha_boda', e.target.value)
+                                            }
+                                        />
+                                        <InputError message={errors.fecha_boda} />
                                     </div>
 
                                     <div className="grid gap-2">

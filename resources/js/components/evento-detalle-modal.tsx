@@ -65,6 +65,8 @@ const tipoEventoLabels: Record<TipoEventoCalendario, string> = {
     retiro_espiritual: 'Retiro Espiritual',
     reunion_equipo: 'Reunión de Equipo',
     cumpleanos: 'Cumpleaños',
+    aniversario_boda: 'Aniversario de Boda',
+    aniversario_acogida: 'Aniversario de Acogida',
 };
 
 const alcanceLabels: Record<AlcanceEvento, string> = {
@@ -84,8 +86,10 @@ export default function EventoDetalleModal({
     }
 
     const handleDelete = () => {
-        // Los cumpleaños no se pueden eliminar
-        if (evento.extendedProps.tipo === 'cumpleanos') {
+        // Los cumpleaños y aniversarios no se pueden eliminar
+        if (evento.extendedProps.tipo === 'cumpleanos' || 
+            evento.extendedProps.tipo === 'aniversario_boda' || 
+            evento.extendedProps.tipo === 'aniversario_acogida') {
             return;
         }
 
@@ -241,7 +245,10 @@ export default function EventoDetalleModal({
 
                 <DialogFooter className="flex justify-between sm:justify-between">
                     <div>
-                        {evento.extendedProps.tipo !== 'cumpleanos' && (evento.puede_editar || evento.puede_eliminar) && (
+                        {evento.extendedProps.tipo !== 'cumpleanos' && 
+                         evento.extendedProps.tipo !== 'aniversario_boda' && 
+                         evento.extendedProps.tipo !== 'aniversario_acogida' && 
+                         (evento.puede_editar || evento.puede_eliminar) && (
                             <div className="flex gap-2">
                                 {evento.puede_editar && (
                                     <Button

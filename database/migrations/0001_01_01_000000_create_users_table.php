@@ -14,7 +14,8 @@ return new class extends Migration
         // Crear tabla parejas primero
         Schema::create('parejas', function (Blueprint $table) {
             $table->id();
-            $table->date('fecha_ingreso')->nullable();
+            $table->date('fecha_acogida')->nullable();
+            $table->date('fecha_boda')->nullable();
             $table->string('foto_path')->nullable();
             $table->string('foto_thumbnail_50')->nullable();
             $table->string('foto_thumbnail_100')->nullable();
@@ -28,6 +29,7 @@ return new class extends Migration
             $table->id();
             $table->string('nombres')->nullable();
             $table->string('apellidos')->nullable();
+            $table->string('cedula', 20)->nullable();
             $table->string('celular', 20)->nullable();
             $table->date('fecha_nacimiento')->nullable();
             $table->enum('sexo', ['masculino', 'femenino'])->nullable();
@@ -58,7 +60,7 @@ return new class extends Migration
 
         // Agregar equipo_id a parejas
         Schema::table('parejas', function (Blueprint $table) {
-            $table->foreignId('equipo_id')->nullable()->after('fecha_ingreso')->constrained('equipos')->nullOnDelete();
+            $table->foreignId('equipo_id')->nullable()->after('fecha_boda')->constrained('equipos')->nullOnDelete();
         });
 
         Schema::create('password_reset_tokens', function (Blueprint $table) {

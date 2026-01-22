@@ -44,7 +44,8 @@ interface EquipoData {
 
 interface ParejaData {
     id: number;
-    fecha_ingreso: string | null;
+    fecha_acogida: string | null;
+    fecha_boda: string | null;
     equipo_id: number | null;
     equipo: EquipoData | null;
     foto_url: string | null;
@@ -97,7 +98,8 @@ export default function Pareja({
     }, [fotoPreview]);
 
     const form = useForm({
-        fecha_ingreso: formatDateForInput(parejaProp.fecha_ingreso),
+        fecha_acogida: formatDateForInput(parejaProp.fecha_acogida),
+        fecha_boda: formatDateForInput(parejaProp.fecha_boda),
         equipo_id: parejaProp.equipo_id?.toString() || '',
         pareja_foto: null as File | null,
     });
@@ -141,23 +143,42 @@ export default function Pareja({
                                     </h2>
 
                                     <div className="grid gap-2">
-                                        <Label htmlFor="fecha_ingreso">
+                                        <Label htmlFor="fecha_acogida">
                                             Fecha de Acogida al Movimiento{' '}
                                             <span className="text-destructive">*</span>
                                         </Label>
                                         <Input
-                                            id="fecha_ingreso"
+                                            id="fecha_acogida"
                                             type="date"
                                             className="mt-1 block w-full"
-                                            value={form.data.fecha_ingreso}
-                                            onChange={(e) => form.setData('fecha_ingreso', e.target.value)}
-                                            name="fecha_ingreso"
+                                            value={form.data.fecha_acogida}
+                                            onChange={(e) => form.setData('fecha_acogida', e.target.value)}
+                                            name="fecha_acogida"
                                             required
                                             max={today}
                                         />
                                         <InputError
                                             className="mt-2"
-                                            message={errors.fecha_ingreso}
+                                            message={errors.fecha_acogida}
+                                        />
+                                    </div>
+
+                                    <div className="grid gap-2">
+                                        <Label htmlFor="fecha_boda">
+                                            Fecha de Boda (Opcional)
+                                        </Label>
+                                        <Input
+                                            id="fecha_boda"
+                                            type="date"
+                                            className="mt-1 block w-full"
+                                            value={form.data.fecha_boda}
+                                            onChange={(e) => form.setData('fecha_boda', e.target.value)}
+                                            name="fecha_boda"
+                                            max={today}
+                                        />
+                                        <InputError
+                                            className="mt-2"
+                                            message={errors.fecha_boda}
                                         />
                                     </div>
 

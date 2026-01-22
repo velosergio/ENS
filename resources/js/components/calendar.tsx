@@ -10,7 +10,7 @@ import EventoDetalleModal from '@/components/evento-detalle-modal';
 import EventoModal from '@/components/evento-modal';
 import FiltrosCalendario from '@/components/filtros-calendario';
 import { Button } from '@/components/ui/button';
-import { events as eventsRoute, exportar as exportarRoute, show as showEvento, updateFecha as updateFechaRoute } from '@/routes/calendario';
+import { events as eventsRoute, exportar as exportarRoute, show as showEvento, updateFecha as updateFechaRoute, updateAniversarioFecha as updateAniversarioFechaRoute } from '@/routes/calendario';
 import { type TipoEventoCalendario } from '@/types';
 
 // Función helper para obtener el token CSRF
@@ -170,8 +170,8 @@ export default function Calendar({ equipos = [], puedeGlobal = false }: Calendar
     const handleEventClick = async (info: { event: { id: string } }): Promise<void> => {
         const eventId = info.event.id;
         
-        // Si es un cumpleaños (ID empieza con "cumpleanos_"), usar los datos del evento directamente
-        if (eventId.startsWith('cumpleanos_')) {
+        // Si es un cumpleaños o aniversario (ID empieza con "cumpleanos_" o "aniversario_"), usar los datos del evento directamente
+        if (eventId.startsWith('cumpleanos_') || eventId.startsWith('aniversario_')) {
             const eventoData = eventos.find((e) => e.id === eventId);
             if (eventoData) {
                 setEventoDetalle(eventoData);
@@ -216,7 +216,7 @@ export default function Calendar({ equipos = [], puedeGlobal = false }: Calendar
 
     // Filtrar eventos según los tipos seleccionados
     const eventosFiltrados = useMemo(() => {
-        if (tiposFiltrados.length === 0 || tiposFiltrados.length === 5) {
+        if (tiposFiltrados.length === 0 || tiposFiltrados.length === 7) {
             // Si no hay filtros o todos están seleccionados, mostrar todos
             return eventosCompletos;
         }
@@ -272,13 +272,6 @@ export default function Calendar({ equipos = [], puedeGlobal = false }: Calendar
 
             const allDay = info.event.allDay;
 
-            // Convertir eventId a número (para eventos normales)
-            const eventoIdNum = parseInt(eventId);
-            if (isNaN(eventoIdNum)) {
-                info.revert();
-                return;
-            }
-
             const csrfToken = getCsrfToken();
             if (!csrfToken) {
                 console.error('No se pudo obtener el token CSRF');
@@ -293,16 +286,41 @@ export default function Calendar({ equipos = [], puedeGlobal = false }: Calendar
                 'X-CSRF-TOKEN': csrfToken,
             };
 
-            const response = await fetch(updateFechaRoute.url({ evento: eventoIdNum }), {
-                method: 'POST',
-                headers,
-                credentials: 'same-origin',
-                body: JSON.stringify({
-                    start: startStr,
-                    end: endStr,
-                    allDay,
-                }),
-            });
+            // Verificar si es un aniversario (formato: aniversario_boda_{pareja_id}_{año} o aniversario_acogida_{pareja_id}_{año})
+            const isAniversario = eventId.startsWith('aniversario_boda_') || eventId.startsWith('aniversario_acogida_');
+
+            let response: Response;
+            if (isAniversario) {
+                // Para aniversarios, usar la ruta específica y enviar el ID completo como string
+                response = await fetch(updateAniversarioFechaRoute().url, {
+                    method: 'POST',
+                    headers,
+                    credentials: 'same-origin',
+                    body: JSON.stringify({
+                        id: eventId,
+                        start: startStr,
+                        allDay,
+                    }),
+                });
+            } else {
+                // Para eventos normales, convertir eventId a número
+                const eventoIdNum = parseInt(eventId);
+                if (isNaN(eventoIdNum)) {
+                    info.revert();
+                    return;
+                }
+
+                response = await fetch(updateFechaRoute.url({ evento: eventoIdNum }), {
+                    method: 'POST',
+                    headers,
+                    credentials: 'same-origin',
+                    body: JSON.stringify({
+                        start: startStr,
+                        end: endStr,
+                        allDay,
+                    }),
+                });
+            }
 
             if (!response.ok) {
                 // Si la respuesta no es OK, revertir el movimiento
@@ -447,6 +465,12 @@ export default function Calendar({ equipos = [], puedeGlobal = false }: Calendar
     }, []);
 
     const handleEditarDesdeDetalle = (evento: CalendarEvent) => {
+        // No permitir editar cumpleaños o aniversarios desde el modal de detalle
+        // Los aniversarios se editan arrastrándolos en el calendario
+        if (evento.id.startsWith('cumpleanos_') || evento.id.startsWith('aniversario_')) {
+            return;
+        }
+
         // Convertir el evento del detalle al formato de edición
         const eventoParaEditar = {
             id: parseInt(evento.id),
@@ -555,10 +579,15 @@ export default function Calendar({ equipos = [], puedeGlobal = false }: Calendar
                             eventDrop={handleEventDrop}
                             eventResize={handleEventResize}
                             eventAllow={(dropInfo, draggedEvent) => {
-                                // No permitir arrastrar cumpleaños
+                                // No permitir arrastrar cumpleaños, pero sí aniversarios
                                 if (!draggedEvent) {
                                     return false;
                                 }
+                                // Permitir aniversarios (son editables)
+                                if (draggedEvent.id.startsWith('aniversario_')) {
+                                    return true;
+                                }
+                                // No permitir cumpleaños
                                 return !draggedEvent.id.startsWith('cumpleanos_');
                             }}
                             datesSet={handleDatesSet}
@@ -570,6 +599,16 @@ export default function Calendar({ equipos = [], puedeGlobal = false }: Calendar
                         }}
                             dayCellContent={(args) => {
                                 return args.dayNumberText;
+                            }}
+                            slotLabelFormat={{
+                                hour: 'numeric',
+                                minute: '2-digit',
+                                hour12: true,
+                            }}
+                            eventTimeFormat={{
+                                hour: 'numeric',
+                                minute: '2-digit',
+                                hour12: true,
                             }}
                             height="auto"
                             contentHeight="auto"

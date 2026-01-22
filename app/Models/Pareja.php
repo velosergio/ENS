@@ -20,7 +20,8 @@ class Pareja extends Model
      * @var list<string>
      */
     protected $fillable = [
-        'fecha_ingreso',
+        'fecha_acogida',
+        'fecha_boda',
         'equipo_id',
         'foto_path',
         'foto_thumbnail_50',
@@ -37,7 +38,8 @@ class Pareja extends Model
     protected function casts(): array
     {
         return [
-            'fecha_ingreso' => 'date',
+            'fecha_acogida' => 'date',
+            'fecha_boda' => 'date',
         ];
     }
 
@@ -135,6 +137,22 @@ class Pareja extends Model
                     });
                 });
         });
+    }
+
+    /**
+     * Obtener el aniversario de acogida (fecha_acogida).
+     */
+    public function aniversarioAcogida(): ?\Carbon\Carbon
+    {
+        return $this->fecha_acogida;
+    }
+
+    /**
+     * Obtener el aniversario de boda (fecha_boda).
+     */
+    public function aniversarioBoda(): ?\Carbon\Carbon
+    {
+        return $this->fecha_boda;
     }
 
     /**

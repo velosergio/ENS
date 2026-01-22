@@ -29,6 +29,7 @@ class ParejaCreateRequest extends FormRequest
             // Datos de ÉL
             'el_nombres' => ['required', 'string', 'max:255'],
             'el_apellidos' => ['required', 'string', 'max:255'],
+            'el_cedula' => ['nullable', 'string', 'max:20'],
             'el_celular' => ['required', 'string', 'max:20'],
             'el_fecha_nacimiento' => ['required', 'date', 'before:today'],
             'el_email' => ['required', 'string', 'email', 'max:255', 'unique:users,email'],
@@ -37,13 +38,15 @@ class ParejaCreateRequest extends FormRequest
             // Datos de ELLA
             'ella_nombres' => ['required', 'string', 'max:255'],
             'ella_apellidos' => ['required', 'string', 'max:255'],
+            'ella_cedula' => ['nullable', 'string', 'max:20'],
             'ella_celular' => ['required', 'string', 'max:20'],
             'ella_fecha_nacimiento' => ['required', 'date', 'before:today'],
             'ella_email' => ['required', 'string', 'email', 'max:255', 'unique:users,email'],
             'ella_foto' => ['nullable', 'image', 'max:5120'], // 5MB max
 
             // Datos de la pareja
-            'fecha_ingreso' => ['required', 'date', 'before_or_equal:today'],
+            'fecha_acogida' => ['required', 'date', 'before_or_equal:today'],
+            'fecha_boda' => ['nullable', 'date', 'before_or_equal:today'],
             'equipo_id' => ['nullable', 'exists:equipos,id'],
             'pareja_foto' => ['nullable', 'image', 'max:5120'], // 5MB max
             'password' => $this->passwordRules(),
@@ -77,9 +80,11 @@ class ParejaCreateRequest extends FormRequest
             'ella_email.unique' => 'El email de ELLA ya está registrado.',
 
             // Pareja
-            'fecha_ingreso.required' => 'La fecha de ingreso es obligatoria.',
-            'fecha_ingreso.date' => 'La fecha de ingreso debe ser una fecha válida.',
-            'fecha_ingreso.before_or_equal' => 'La fecha de ingreso no puede ser futura.',
+            'fecha_acogida.required' => 'La fecha de acogida es obligatoria.',
+            'fecha_acogida.date' => 'La fecha de acogida debe ser una fecha válida.',
+            'fecha_acogida.before_or_equal' => 'La fecha de acogida no puede ser futura.',
+            'fecha_boda.date' => 'La fecha de boda debe ser una fecha válida.',
+            'fecha_boda.before_or_equal' => 'La fecha de boda no puede ser futura.',
             'equipo_id.exists' => 'El equipo seleccionado no existe.',
 
             // Password

@@ -58,7 +58,7 @@ interface ParejaData {
         id: number;
         numero: number;
     } | null;
-    fecha_ingreso: string | null;
+    fecha_acogida: string | null;
     estado: 'activo' | 'retirado';
     foto_thumbnail_50: string | null;
     el: UsuarioData | null;
@@ -328,11 +328,11 @@ export default function ParejasIndex({
                                                                     }
                                                                 </span>
                                                             )}
-                                                            {pareja.fecha_ingreso && (
+                                                            {pareja.fecha_acogida && (
                                                                 <span>
-                                                                    Ingreso:{' '}
+                                                                    Acogida:{' '}
                                                                     {formatDate(
-                                                                        pareja.fecha_ingreso,
+                                                                        pareja.fecha_acogida,
                                                                     )}
                                                                 </span>
                                                             )}

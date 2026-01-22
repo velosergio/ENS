@@ -27,7 +27,8 @@ class ParejaUpdateRequest extends FormRequest
 
         return [
             // Datos de la pareja
-            'fecha_ingreso' => ['required', 'date', 'before_or_equal:today'],
+            'fecha_acogida' => ['required', 'date', 'before_or_equal:today'],
+            'fecha_boda' => ['nullable', 'date', 'before_or_equal:today'],
             'equipo_id' => ['nullable', 'exists:equipos,id'],
             'pareja_foto' => ['nullable', 'image', 'max:5120'], // 5MB max
             'estado' => ['required', 'in:activo,retirado'],
@@ -35,6 +36,7 @@ class ParejaUpdateRequest extends FormRequest
             // Datos de ÉL
             'el_nombres' => ['required', 'string', 'max:255'],
             'el_apellidos' => ['required', 'string', 'max:255'],
+            'el_cedula' => ['nullable', 'string', 'max:20'],
             'el_celular' => ['required', 'string', 'max:20'],
             'el_fecha_nacimiento' => ['required', 'date', 'before:today'],
             'el_email' => [
@@ -53,6 +55,7 @@ class ParejaUpdateRequest extends FormRequest
             // Datos de ELLA
             'ella_nombres' => ['required', 'string', 'max:255'],
             'ella_apellidos' => ['required', 'string', 'max:255'],
+            'ella_cedula' => ['nullable', 'string', 'max:20'],
             'ella_celular' => ['required', 'string', 'max:20'],
             'ella_fecha_nacimiento' => ['required', 'date', 'before:today'],
             'ella_email' => [
@@ -79,9 +82,11 @@ class ParejaUpdateRequest extends FormRequest
     {
         return [
             // Pareja
-            'fecha_ingreso.required' => 'El campo fecha de ingreso es obligatorio.',
-            'fecha_ingreso.date' => 'La fecha de ingreso debe ser una fecha válida.',
-            'fecha_ingreso.before_or_equal' => 'La fecha de ingreso no puede ser futura.',
+            'fecha_acogida.required' => 'El campo fecha de acogida es obligatorio.',
+            'fecha_acogida.date' => 'La fecha de acogida debe ser una fecha válida.',
+            'fecha_acogida.before_or_equal' => 'La fecha de acogida no puede ser futura.',
+            'fecha_boda.date' => 'La fecha de boda debe ser una fecha válida.',
+            'fecha_boda.before_or_equal' => 'La fecha de boda no puede ser futura.',
             'equipo_id.exists' => 'El equipo seleccionado no existe.',
             'estado.required' => 'El estado es obligatorio.',
             'estado.in' => 'El estado debe ser activo o retirado.',

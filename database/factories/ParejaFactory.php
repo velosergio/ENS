@@ -19,7 +19,8 @@ class ParejaFactory extends Factory
     public function definition(): array
     {
         return [
-            'fecha_ingreso' => fake()->dateTimeBetween('-10 years', 'now'),
+            'fecha_acogida' => fake()->dateTimeBetween('-10 years', 'now'),
+            'fecha_boda' => fake()->dateTimeBetween('-20 years', '-1 year'),
             'equipo_id' => null,
             'foto_path' => null,
             'foto_thumbnail_50' => null,

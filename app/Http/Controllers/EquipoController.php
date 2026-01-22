@@ -155,7 +155,7 @@ class EquipoController extends Controller
             ->with(['usuarios' => function ($q) {
                 $q->orderBy('sexo');
             }])
-            ->orderBy('fecha_ingreso', 'desc')
+            ->orderBy('fecha_acogida', 'desc')
             ->paginate(15)
             ->withQueryString()
             ->through(function ($pareja) {
@@ -164,7 +164,7 @@ class EquipoController extends Controller
 
                 return [
                     'id' => $pareja->id,
-                    'fecha_ingreso' => $pareja->fecha_ingreso?->format('Y-m-d'),
+                    'fecha_acogida' => $pareja->fecha_acogida?->format('Y-m-d'),
                     'estado' => $pareja->estado,
                     'foto_thumbnail_50' => $pareja->foto_thumbnail_50_url,
                     'el' => $el ? [

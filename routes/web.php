@@ -90,28 +90,48 @@ Route::middleware(['auth'])->group(function () {
             ];
         })->toArray();
 
-        // Obtener cumpleaños próximos (próximos 14 días)
-        $cumpleanosService = new \App\Services\CumpleanosService;
-        $configuracionCumpleanos = $configuraciones['cumpleanos'] ?? ['color' => '#ec4899', 'icono' => 'Cake'];
-        $cumpleanos = $cumpleanosService->obtenerCumpleanosEnRango($fechaInicio, $fechaFin, $configuracionCumpleanos);
+        // Obtener próximos eventos (cumpleaños y aniversarios) usando el servicio
+        $aniversariosService = new \App\Services\CumpleanosAniversariosService;
+        $equipoId = $user->esMango() ? null : $user->equipo()?->id;
+        $eventosCumpleanosAniversarios = $aniversariosService->obtenerProximosEventos(14, $user, $equipoId);
 
-        // Formatear cumpleaños para el dashboard (mismo formato que eventos)
-        $cumpleanosFormateados = array_map(function ($cumpleano) use ($configuracionCumpleanos) {
+        // Formatear cumpleaños y aniversarios para el dashboard
+        $eventosCumpleanosAniversariosFormateados = array_map(function ($evento) use ($configuraciones) {
+            $fecha = $evento['start'] ?? $evento['fecha_cumpleanos'] ?? $evento['fecha'] ?? '';
+            $tipo = $evento['tipo'] ?? 'cumpleanos';
+
+            // Determinar color e icono según tipo
+            $color = '#ec4899';
+            $icono = 'Cake';
+            if ($tipo === 'aniversario_boda') {
+                $config = $configuraciones['aniversario_boda'] ?? ['color' => '#f59e0b', 'icono' => 'Heart'];
+                $color = $config['color'];
+                $icono = $config['icono'] ?? 'Heart';
+            } elseif ($tipo === 'aniversario_acogida') {
+                $config = $configuraciones['aniversario_acogida'] ?? ['color' => '#10b981', 'icono' => 'Users'];
+                $color = $config['color'];
+                $icono = $config['icono'] ?? 'Users';
+            } else {
+                $config = $configuraciones['cumpleanos'] ?? ['color' => '#ec4899', 'icono' => 'Cake'];
+                $color = $config['color'];
+                $icono = $config['icono'] ?? 'Cake';
+            }
+
             return [
-                'id' => $cumpleano['id'],
-                'titulo' => $cumpleano['title'],
-                'fecha_inicio' => $cumpleano['start'],
-                'fecha_fin' => $cumpleano['end'],
-                'allDay' => $cumpleano['allDay'],
-                'tipo' => 'cumpleanos',
+                'id' => $evento['id'],
+                'titulo' => $evento['title'] ?? $evento['titulo'] ?? ($evento['nombre'] ?? 'Evento'),
+                'fecha_inicio' => $fecha,
+                'fecha_fin' => $fecha,
+                'allDay' => true,
+                'tipo' => $tipo,
                 'alcance' => 'global',
-                'color' => $cumpleano['backgroundColor'],
-                'icono' => $configuracionCumpleanos['icono'] ?? 'Cake',
+                'color' => $color,
+                'icono' => $icono,
             ];
-        }, $cumpleanos);
+        }, $eventosCumpleanosAniversarios);
 
-        // Combinar eventos y cumpleaños, ordenar por fecha
-        $todosLosEventos = array_merge($eventosFormateados, $cumpleanosFormateados);
+        // Combinar eventos, cumpleaños y aniversarios, ordenar por fecha
+        $todosLosEventos = array_merge($eventosFormateados, $eventosCumpleanosAniversariosFormateados);
 
         // Ordenar por fecha de inicio (tomar solo la fecha, no la hora completa)
         usort($todosLosEventos, function ($a, $b) {
@@ -182,12 +202,20 @@ Route::middleware(['auth', 'permission:calendario,view'])->group(function () {
 
     Route::middleware('permission:calendario,update')->group(function () {
         Route::patch('calendario/{evento}', [\App\Http\Controllers\CalendarController::class, 'update'])->name('calendario.update');
+        // Ruta específica antes de la ruta parametrizada para evitar conflictos de enrutamiento
+        Route::post('calendario/aniversario/fecha', [\App\Http\Controllers\CalendarController::class, 'updateAniversarioFecha'])->name('calendario.update-aniversario-fecha');
         Route::post('calendario/{evento}/fecha', [\App\Http\Controllers\CalendarController::class, 'updateFecha'])->name('calendario.update-fecha');
     });
 
     Route::middleware('permission:calendario,delete')->group(function () {
         Route::delete('calendario/{evento}', [\App\Http\Controllers\CalendarController::class, 'destroy'])->name('calendario.destroy');
     });
+
+    // Módulo de Cumpleaños y Aniversarios
+    Route::get('cumpleanos-aniversarios', [\App\Http\Controllers\CumpleanosAniversariosController::class, 'index'])
+        ->name('cumpleanos-aniversarios.index');
+    Route::get('cumpleanos-aniversarios/proximos', [\App\Http\Controllers\CumpleanosAniversariosController::class, 'proximos'])
+        ->name('cumpleanos-aniversarios.proximos');
 });
 
 require __DIR__.'/settings.php';

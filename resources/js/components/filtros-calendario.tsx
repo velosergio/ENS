@@ -8,7 +8,7 @@ interface FiltrosCalendarioProps {
     onFiltrosChange: (tipos: TipoEventoCalendario[]) => void;
 }
 
-const todosLosTipos: TipoEventoCalendario[] = ['general', 'formacion', 'retiro_espiritual', 'reunion_equipo', 'cumpleanos'];
+const todosLosTipos: TipoEventoCalendario[] = ['general', 'formacion', 'retiro_espiritual', 'reunion_equipo', 'cumpleanos', 'aniversario_boda', 'aniversario_acogida'];
 
 const tipoLabels: Record<TipoEventoCalendario, string> = {
     general: 'Eventos Generales',
@@ -16,6 +16,8 @@ const tipoLabels: Record<TipoEventoCalendario, string> = {
     retiro_espiritual: 'Retiros Espirituales',
     reunion_equipo: 'Reuniones de Equipo',
     cumpleanos: 'Cumpleaños',
+    aniversario_boda: 'Aniversarios de Boda',
+    aniversario_acogida: 'Aniversarios de Acogida',
 };
 
 const STORAGE_KEY = 'calendario_filtros';

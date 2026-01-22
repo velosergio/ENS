@@ -23,7 +23,8 @@ class ParejaUpdateRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'fecha_ingreso' => ['required', 'date', 'before_or_equal:today'],
+            'fecha_acogida' => ['required', 'date', 'before_or_equal:today'],
+            'fecha_boda' => ['nullable', 'date', 'before_or_equal:today'],
             'equipo_id' => ['nullable', 'exists:equipos,id'],
             'pareja_foto' => ['nullable', 'image', 'max:5120'], // 5MB max
         ];
@@ -37,9 +38,11 @@ class ParejaUpdateRequest extends FormRequest
     public function messages(): array
     {
         return [
-            'fecha_ingreso.required' => 'El campo fecha de ingreso es obligatorio.',
-            'fecha_ingreso.date' => 'La fecha de ingreso debe ser una fecha válida.',
-            'fecha_ingreso.before_or_equal' => 'La fecha de ingreso no puede ser futura.',
+            'fecha_acogida.required' => 'El campo fecha de acogida es obligatorio.',
+            'fecha_acogida.date' => 'La fecha de acogida debe ser una fecha válida.',
+            'fecha_acogida.before_or_equal' => 'La fecha de acogida no puede ser futura.',
+            'fecha_boda.date' => 'La fecha de boda debe ser una fecha válida.',
+            'fecha_boda.before_or_equal' => 'La fecha de boda no puede ser futura.',
             'equipo_id.exists' => 'El equipo seleccionado no existe.',
         ];
     }

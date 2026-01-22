@@ -15,7 +15,7 @@ const breadcrumbs: BreadcrumbItem[] = [
 interface DashboardProps {
     pareja?: {
         id: number;
-        fecha_ingreso?: string;
+        fecha_acogida?: string;
         usuarios?: Array<{
             id: number;
             nombres?: string | null;

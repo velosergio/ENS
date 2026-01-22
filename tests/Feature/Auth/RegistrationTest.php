@@ -23,7 +23,7 @@ test('new couples can register', function () {
         'ella_email' => 'maria@example.com',
 
         // Datos de la pareja
-        'fecha_ingreso' => '2024-01-01',
+        'fecha_acogida' => '2024-01-01',
         'numero_equipo' => 1,
 
         // Contraseña (compartida)

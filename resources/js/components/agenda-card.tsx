@@ -1,5 +1,5 @@
 import { router } from '@inertiajs/react';
-import { Calendar as CalendarIcon, Cake, BookOpen, Church, Users, Clock, Link as LinkIcon } from 'lucide-react';
+import { Calendar as CalendarIcon, Cake, BookOpen, Church, Users, Clock, Link as LinkIcon, Heart } from 'lucide-react';
 import { useMemo } from 'react';
 
 import { Button } from '@/components/ui/button';
@@ -30,6 +30,7 @@ const iconosMap: Record<string, React.ComponentType<{ className?: string }>> = {
     Church: Church,
     Users: Users,
     Cake: Cake,
+    Heart: Heart,
 };
 
 // Obtener componente de icono
@@ -44,7 +45,6 @@ function getIconComponent(iconoNombre: string | null | undefined): React.Compone
 function formatearFecha(fechaStr: string, allDay: boolean): string {
     // Extraer solo la fecha si viene con hora
     const fechaSolo = fechaStr.includes('T') ? fechaStr.split('T')[0] : fechaStr;
-    const fecha = new Date(fechaSolo + (allDay ? '' : 'T00:00:00'));
     
     if (allDay) {
         const hoy = new Date();

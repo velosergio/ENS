@@ -7,7 +7,10 @@ use App\Http\Requests\EventoCalendarioUpdateRequest;
 use App\Models\ConfiguracionCalendario;
 use App\Models\Equipo;
 use App\Models\EventoCalendario;
+use App\Models\Pareja;
+use App\Services\CumpleanosAniversariosService;
 use App\Services\CumpleanosService;
+use Carbon\Carbon;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -94,8 +97,46 @@ class CalendarController extends Controller
         $configuracionCumpleanos = $configuraciones['cumpleanos'] ?? ['color' => '#ec4899', 'icono' => 'Cake'];
         $cumpleanos = $cumpleanosService->obtenerCumpleanosEnRango($start, $end, $configuracionCumpleanos);
 
-        // Combinar eventos y cumpleaños
-        $todosLosEventos = array_merge($eventosFormateados, $cumpleanos);
+        // Obtener aniversarios en el rango de fechas
+        $aniversariosService = new CumpleanosAniversariosService;
+        $equipoId = $user->esMango() ? null : $user->equipo()?->id;
+        $aniversariosRaw = $aniversariosService->obtenerProximosAniversarios(
+            (int) Carbon::parse($start)->diffInDays(Carbon::parse($end)) + 1,
+            $user,
+            $equipoId
+        );
+
+        // Formatear aniversarios para FullCalendar
+        $configuracionAniversarioBoda = $configuraciones['aniversario_boda'] ?? ['color' => '#f59e0b', 'icono' => 'Heart'];
+        $configuracionAniversarioAcogida = $configuraciones['aniversario_acogida'] ?? ['color' => '#10b981', 'icono' => 'Users'];
+        $aniversarios = array_map(function ($aniversario) use ($configuracionAniversarioBoda, $configuracionAniversarioAcogida) {
+            $config = $aniversario['tipo'] === 'aniversario_boda' ? $configuracionAniversarioBoda : $configuracionAniversarioAcogida;
+            $fecha = Carbon::parse($aniversario['fecha']);
+
+            return [
+                'id' => $aniversario['id'],
+                'title' => $aniversario['titulo'],
+                'start' => $fecha->format('Y-m-d'),
+                'end' => $fecha->copy()->addDay()->format('Y-m-d'),
+                'allDay' => true,
+                'backgroundColor' => $config['color'],
+                'borderColor' => $config['color'],
+                'textColor' => '#ffffff',
+                'extendedProps' => [
+                    'tipo' => $aniversario['tipo'],
+                    'alcance' => 'global',
+                    'equipo_id' => null,
+                    'icono' => $config['icono'],
+                    'años' => $aniversario['años'],
+                    'pareja' => $aniversario['pareja'],
+                ],
+                'puede_editar' => true, // Los aniversarios son editables
+                'puede_eliminar' => false, // Los aniversarios no son eliminables
+            ];
+        }, $aniversariosRaw);
+
+        // Combinar eventos, cumpleaños y aniversarios
+        $todosLosEventos = array_merge($eventosFormateados, $cumpleanos, $aniversarios);
 
         return response()->json($todosLosEventos);
     }
@@ -328,6 +369,137 @@ class CalendarController extends Controller
     }
 
     /**
+     * Actualizar fecha de un aniversario (para drag & drop).
+     */
+    public function updateAniversarioFecha(Request $request): JsonResponse
+    {
+        $user = $request->user();
+
+        $request->validate([
+            'id' => ['required', 'string'],
+            'start' => ['required'],
+            'allDay' => ['nullable', 'boolean'],
+        ]);
+
+        $eventId = $request->input('id');
+
+        // Parsear ID del aniversario: formato "aniversario_boda_{pareja_id}_{año}" o "aniversario_acogida_{pareja_id}_{año}"
+        if (! str_starts_with($eventId, 'aniversario_')) {
+            return response()->json(['error' => 'ID de aniversario inválido.'], 400);
+        }
+
+        $parts = explode('_', $eventId);
+        if (count($parts) < 4) {
+            return response()->json(['error' => 'Formato de ID de aniversario inválido.'], 400);
+        }
+
+        $tipo = $parts[0].'_'.$parts[1]; // 'aniversario_boda' o 'aniversario_acogida'
+        $parejaId = (int) $parts[2];
+
+        $pareja = Pareja::findOrFail($parejaId);
+
+        // Verificar permisos: solo el creador del aniversario (la pareja misma) o mango/admin pueden editar
+        if (! $user->esMango() && ! $user->esAdmin()) {
+            $parejaUsuario = $user->pareja;
+            if (! $parejaUsuario || $parejaUsuario->id !== $pareja->id) {
+                return response()->json(['error' => 'No tienes permiso para editar este aniversario.'], 403);
+            }
+        }
+
+        // Parsear nueva fecha
+        $nuevaFecha = Carbon::parse($request->start);
+        if (str_ends_with($request->start, 'Z')) {
+            $nuevaFecha = Carbon::parse($request->start, 'UTC')->setTimezone(config('app.timezone'));
+        }
+
+        // Obtener año original antes de actualizar
+        $añoOriginal = $tipo === 'aniversario_boda'
+            ? ($pareja->fecha_boda ? (int) $pareja->fecha_boda->format('Y') : null)
+            : ($pareja->fecha_acogida ? (int) $pareja->fecha_acogida->format('Y') : null);
+
+        if (! $añoOriginal) {
+            return response()->json(['error' => 'No se puede calcular el aniversario sin fecha original.'], 400);
+        }
+
+        // Actualizar la fecha correspondiente según el tipo
+        if ($tipo === 'aniversario_boda') {
+            $pareja->fecha_boda = $nuevaFecha->format('Y-m-d');
+        } elseif ($tipo === 'aniversario_acogida') {
+            $pareja->fecha_acogida = $nuevaFecha->format('Y-m-d');
+        } else {
+            return response()->json(['error' => 'Tipo de aniversario inválido.'], 400);
+        }
+
+        $pareja->save();
+        $pareja->refresh();
+
+        // Calcular años del aniversario basado en el año nuevo y el año original
+        $añoNuevo = (int) $nuevaFecha->format('Y');
+        $años = $añoNuevo - $añoOriginal;
+
+        // Obtener datos de la pareja
+        $el = $pareja->el();
+        $ella = $pareja->ella();
+        $nombreEl = $el ? trim(($el->nombres ?? '').' '.($el->apellidos ?? '')) : '';
+        $nombreElla = $ella ? trim(($ella->nombres ?? '').' '.($ella->apellidos ?? '')) : '';
+        $nombrePareja = trim($nombreEl.' & '.$nombreElla) ?: 'Pareja sin nombre';
+
+        // Formatear para FullCalendar
+        $configuraciones = ConfiguracionCalendario::todas();
+        $config = $tipo === 'aniversario_boda'
+            ? ($configuraciones['aniversario_boda'] ?? ['color' => '#f59e0b', 'icono' => 'Heart'])
+            : ($configuraciones['aniversario_acogida'] ?? ['color' => '#10b981', 'icono' => 'Users']);
+
+        $titulo = $tipo === 'aniversario_boda'
+            ? 'Aniversario de Boda: '.$nombrePareja
+            : 'Aniversario de Acogida: '.$nombrePareja;
+
+        $nuevoId = $tipo.'_'.$pareja->id.'_'.$añoNuevo;
+
+        return response()->json([
+            'success' => true,
+            'evento' => [
+                'id' => $nuevoId,
+                'title' => $titulo,
+                'start' => $nuevaFecha->format('Y-m-d'),
+                'end' => $nuevaFecha->copy()->addDay()->format('Y-m-d'),
+                'allDay' => true,
+                'backgroundColor' => $config['color'],
+                'borderColor' => $config['color'],
+                'textColor' => '#ffffff',
+                'extendedProps' => [
+                    'tipo' => $tipo,
+                    'alcance' => 'global',
+                    'equipo_id' => null,
+                    'icono' => $config['icono'],
+                    'años' => $años,
+                    'pareja' => [
+                        'id' => $pareja->id,
+                        'el' => $el ? [
+                            'id' => $el->id,
+                            'nombres' => $el->nombres,
+                            'apellidos' => $el->apellidos,
+                            'email' => $el->email,
+                            'cedula' => $el->cedula,
+                            'celular' => $el->celular,
+                        ] : null,
+                        'ella' => $ella ? [
+                            'id' => $ella->id,
+                            'nombres' => $ella->nombres,
+                            'apellidos' => $ella->apellidos,
+                            'email' => $ella->email,
+                            'cedula' => $ella->cedula,
+                            'celular' => $ella->celular,
+                        ] : null,
+                    ],
+                ],
+                'puede_editar' => true,
+                'puede_eliminar' => false,
+            ],
+        ]);
+    }
+
+    /**
      * Exportar calendario a formato .ics (iCalendar).
      */
     public function exportar(Request $request): \Illuminate\Http\Response
@@ -370,6 +542,12 @@ class CalendarController extends Controller
         $configuracionCumpleanos = $configuraciones['cumpleanos'] ?? ['color' => '#ec4899', 'icono' => 'Cake'];
         $cumpleanos = $cumpleanosService->obtenerCumpleanosEnRango($start, $end, $configuracionCumpleanos);
 
+        // Obtener aniversarios
+        $aniversariosService = new CumpleanosAniversariosService;
+        $equipoId = $user->esMango() ? null : $user->equipo()?->id;
+        $diasRango = (int) Carbon::parse($start)->diffInDays(Carbon::parse($end)) + 1;
+        $aniversarios = $aniversariosService->obtenerProximosAniversarios($diasRango, $user, $equipoId);
+
         // Generar contenido .ics
         $icsContent = "BEGIN:VCALENDAR\r\n";
         $icsContent .= "VERSION:2.0\r\n";
@@ -385,6 +563,11 @@ class CalendarController extends Controller
         // Agregar cumpleaños
         foreach ($cumpleanos as $cumpleano) {
             $icsContent .= $this->cumpleanoAICS($cumpleano);
+        }
+
+        // Agregar aniversarios
+        foreach ($aniversarios as $aniversario) {
+            $icsContent .= $this->aniversarioAICS($aniversario);
         }
 
         $icsContent .= "END:VCALENDAR\r\n";
@@ -439,6 +622,28 @@ class CalendarController extends Controller
 
         $ics = "BEGIN:VEVENT\r\n";
         $ics .= "UID:{$cumpleano['id']}@ens\r\n";
+        $ics .= 'DTSTAMP:'.now()->format('Ymd\THis\Z')."\r\n";
+        $ics .= "DTSTART;VALUE=DATE:{$dtStart}\r\n";
+        $ics .= "DTEND;VALUE=DATE:{$dtEnd}\r\n";
+        $ics .= "SUMMARY:{$summary}\r\n";
+        $ics .= "RRULE:FREQ=YEARLY\r\n";
+        $ics .= "STATUS:CONFIRMED\r\n";
+        $ics .= "END:VEVENT\r\n";
+
+        return $ics;
+    }
+
+    /**
+     * Convertir un aniversario a formato iCalendar.
+     */
+    private function aniversarioAICS(array $aniversario): string
+    {
+        $dtStart = Carbon::parse($aniversario['fecha'])->format('Ymd');
+        $dtEnd = Carbon::parse($aniversario['fecha'])->addDay()->format('Ymd');
+        $summary = $this->escapeICS($aniversario['titulo']);
+
+        $ics = "BEGIN:VEVENT\r\n";
+        $ics .= "UID:{$aniversario['id']}@ens\r\n";
         $ics .= 'DTSTAMP:'.now()->format('Ymd\THis\Z')."\r\n";
         $ics .= "DTSTART;VALUE=DATE:{$dtStart}\r\n";
         $ics .= "DTEND;VALUE=DATE:{$dtEnd}\r\n";

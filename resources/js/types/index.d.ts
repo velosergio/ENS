@@ -44,7 +44,7 @@ export interface User {
     [key: string]: unknown; // This allows for additional properties...
 }
 
-export type TipoEventoCalendario = 'general' | 'formacion' | 'retiro_espiritual' | 'reunion_equipo' | 'cumpleanos';
+export type TipoEventoCalendario = 'general' | 'formacion' | 'retiro_espiritual' | 'reunion_equipo' | 'cumpleanos' | 'aniversario_boda' | 'aniversario_acogida';
 
 export type AlcanceEvento = 'equipo' | 'global';
 

@@ -92,7 +92,10 @@ export default function ParejasCreate({ equipos }: ParejasCreateProps) {
         ella_fecha_nacimiento: '',
         ella_email: '',
         ella_foto: null as File | null,
-        fecha_ingreso: '',
+        fecha_acogida: '',
+        fecha_boda: '',
+        el_cedula: '',
+        ella_cedula: '',
         equipo_id: null as number | null,
         pareja_foto: null as File | null,
         password: '',
@@ -197,6 +200,32 @@ export default function ParejasCreate({ equipos }: ParejasCreateProps) {
                                                 <InputError
                                                     message={
                                                         form.errors.el_apellidos
+                                                    }
+                                                />
+                                            </div>
+
+                                            <div className="grid gap-2">
+                                                <Label htmlFor="el_cedula">
+                                                    Cédula (Opcional)
+                                                </Label>
+                                                <Input
+                                                    id="el_cedula"
+                                                    type="text"
+                                                    name="el_cedula"
+                                                    placeholder="Ingresa el número de cédula"
+                                                    value={
+                                                        form.data.el_cedula || ''
+                                                    }
+                                                    onChange={(e) =>
+                                                        form.setData(
+                                                            'el_cedula',
+                                                            e.target.value,
+                                                        )
+                                                    }
+                                                />
+                                                <InputError
+                                                    message={
+                                                        form.errors.el_cedula
                                                     }
                                                 />
                                             </div>
@@ -373,6 +402,32 @@ export default function ParejasCreate({ equipos }: ParejasCreateProps) {
                                             </div>
 
                                             <div className="grid gap-2">
+                                                <Label htmlFor="ella_cedula">
+                                                    Cédula (Opcional)
+                                                </Label>
+                                                <Input
+                                                    id="ella_cedula"
+                                                    type="text"
+                                                    name="ella_cedula"
+                                                    placeholder="Ingresa el número de cédula"
+                                                    value={
+                                                        form.data.ella_cedula || ''
+                                                    }
+                                                    onChange={(e) =>
+                                                        form.setData(
+                                                            'ella_cedula',
+                                                            e.target.value,
+                                                        )
+                                                    }
+                                                />
+                                                <InputError
+                                                    message={
+                                                        form.errors.ella_cedula
+                                                    }
+                                                />
+                                            </div>
+
+                                            <div className="grid gap-2">
                                                 <Label htmlFor="ella_celular">
                                                     Celular
                                                 </Label>
@@ -494,33 +549,63 @@ export default function ParejasCreate({ equipos }: ParejasCreateProps) {
                                         </h2>
                                         <div className="grid gap-4">
                                             <div className="grid gap-2">
-                                                <Label htmlFor="fecha_ingreso">
+                                                <Label htmlFor="fecha_acogida">
                                                     Fecha de Acogida al
                                                     Movimiento
                                                 </Label>
                                                 <Input
-                                                    id="fecha_ingreso"
+                                                    id="fecha_acogida"
                                                     type="date"
                                                     required
-                                                    name="fecha_ingreso"
+                                                    name="fecha_acogida"
                                                     max={today}
                                                     value={
-                                                        form.data.fecha_ingreso
+                                                        form.data.fecha_acogida
                                                             ? formatDateForInput(
-                                                                  form.data.fecha_ingreso,
+                                                                  form.data.fecha_acogida,
                                                               )
                                                             : ''
                                                     }
                                                     onChange={(e) =>
                                                         form.setData(
-                                                            'fecha_ingreso',
+                                                            'fecha_acogida',
                                                             e.target.value,
                                                         )
                                                     }
                                                 />
                                                 <InputError
                                                     message={
-                                                        form.errors.fecha_ingreso
+                                                        form.errors.fecha_acogida
+                                                    }
+                                                />
+                                            </div>
+
+                                            <div className="grid gap-2">
+                                                <Label htmlFor="fecha_boda">
+                                                    Fecha de Boda (Opcional)
+                                                </Label>
+                                                <Input
+                                                    id="fecha_boda"
+                                                    type="date"
+                                                    name="fecha_boda"
+                                                    max={today}
+                                                    value={
+                                                        form.data.fecha_boda
+                                                            ? formatDateForInput(
+                                                                  form.data.fecha_boda,
+                                                              )
+                                                            : ''
+                                                    }
+                                                    onChange={(e) =>
+                                                        form.setData(
+                                                            'fecha_boda',
+                                                            e.target.value,
+                                                        )
+                                                    }
+                                                />
+                                                <InputError
+                                                    message={
+                                                        form.errors.fecha_boda
                                                     }
                                                 />
                                             </div>

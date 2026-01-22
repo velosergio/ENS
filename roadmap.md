@@ -186,35 +186,39 @@ El roadmap está dividido en 10 fases que implementan los módulos del sistema d
 **Objetivo:** Implementar sistema de gestión y visualización de cumpleaños y aniversarios.
 
 ### Infraestructura Base:
-- [ ] Revisar y ajustar modelos Pareja y User según necesidades detectadas
-- [ ] Verificar campos de fechas (fecha_nacimiento, fecha_boda, fecha_ingreso)
-- [ ] Actualizar migraciones si es necesario
-- [ ] Ajustar factories si hay cambios
+- [x] Revisar y ajustar modelos Pareja y User según necesidades detectadas
+- [x] Verificar campos de fechas (fecha_nacimiento, fecha_boda, fecha_ingreso)
+- [x] Actualizar migraciones si es necesario
 
 ### Tareas:
-- [ ] Crear modelo `Aniversario` con migración (para aniversarios de pareja)
-  - Campos: `pareja_id`, `tipo` (enum: boda, ingreso_movimiento), `fecha`, `created_at`
-  - Relación: `belongsTo Pareja`
-- [ ] Actualizar lógica para calcular cumpleaños desde `fecha_nacimiento` de usuarios
-- [ ] Crear servicio `CumpleanosAniversariosService`
+- [x] Actualizar lógica para calcular cumpleaños desde `fecha_nacimiento` de usuarios
+- [x] Crear servicio `CumpleanosAniversariosService`
   - Método para obtener cumpleaños del mes
   - Método para obtener aniversarios del mes
   - Método para calcular próximos (1 día, 1 semana)
-- [ ] Crear controlador `CumpleanosAniversariosController`
+- [x] Crear controlador `CumpleanosAniversariosController`
   - `index`: Vista de cumpleaños/aniversarios del mes actual
   - `proximos`: Próximos cumpleaños/aniversarios (1 día, 1 semana)
-- [ ] Páginas frontend:
+- [x] Páginas frontend:
   - Vista de cumpleaños/aniversarios del mes
   - Widget en dashboard con próximos
-- [ ] Componente para mostrar en calendario (Fase 3)
-- [ ] Agregar campo `fecha_boda` a modelo `Pareja` (migración)
-- [ ] Tests para cálculo de fechas
+- [x] Componente para mostrar en calendario (Fase 3)
+- [x] Agregar campo `fecha_boda` a modelo `Pareja` (migración)
+- [x] Tests para cálculo de fechas
 
 ### Entregables:
-- Vista de cumpleaños del mes
-- Vista de aniversarios del mes (boda, ingreso)
-- Cálculo de próximos eventos (1 día, 1 semana)
-- Integración con calendario
+- [x] Vista de cumpleaños del mes
+- [x] Vista de aniversarios del mes (boda, ingreso)
+- [x] Cálculo de próximos eventos (1 día, 1 semana)
+- [x] Integración con calendario
+
+### Cambios solicitados
+- [x] Reducir a 8 el numero de caracteres solicitados en la contaseña
+- [x] Eliminar la condicion de signos de la App
+- [x] Traducir todos los mensajes de error de Auth al español
+- [x] Agregar el campo cedula en el registro tambien
+- [x] En la vista de "Diaria" de FullCalendar pasarlo a formato 12 Horas "especificar AM o PM" 
+- [x] Cambiar Fecha de ingreso por Fecha de Acogida
 
 ---
 

@@ -320,6 +320,7 @@ test('cannot update evento created by another user', function () {
 
     $evento = EventoCalendario::factory()
         ->todoElDia()
+        ->global()
         ->create([
             'creado_por' => $user1->id,
             'fecha_inicio' => now()->addDay(),

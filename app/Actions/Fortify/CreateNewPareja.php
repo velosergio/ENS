@@ -29,6 +29,7 @@ class CreateNewPareja implements CreatesNewUsers
             // Datos de ÉL
             'el_nombres' => ['required', 'string', 'max:255'],
             'el_apellidos' => ['required', 'string', 'max:255'],
+            'el_cedula' => ['nullable', 'string', 'max:20'],
             'el_celular' => ['required', 'string', 'max:20'],
             'el_fecha_nacimiento' => ['required', 'date', 'before:today'],
             'el_email' => ['required', 'string', 'email', 'max:255', 'unique:users,email'],
@@ -37,13 +38,15 @@ class CreateNewPareja implements CreatesNewUsers
             // Datos de ELLA
             'ella_nombres' => ['required', 'string', 'max:255'],
             'ella_apellidos' => ['required', 'string', 'max:255'],
+            'ella_cedula' => ['nullable', 'string', 'max:20'],
             'ella_celular' => ['required', 'string', 'max:20'],
             'ella_fecha_nacimiento' => ['required', 'date', 'before:today'],
             'ella_email' => ['required', 'string', 'email', 'max:255', 'unique:users,email'],
             'ella_foto' => ['nullable', 'image', 'max:5120'], // 5MB max
 
             // Datos de la pareja
-            'fecha_ingreso' => ['required', 'date', 'before_or_equal:today'],
+            'fecha_acogida' => ['required', 'date', 'before_or_equal:today'],
+            'fecha_boda' => ['nullable', 'date', 'before_or_equal:today'],
             'equipo_id' => ['nullable', 'exists:equipos,id'],
             'pareja_foto' => ['nullable', 'image', 'max:5120'], // 5MB max
             'password' => $this->passwordRules(),
@@ -58,7 +61,8 @@ class CreateNewPareja implements CreatesNewUsers
 
             // Crear la pareja
             $pareja = Pareja::create([
-                'fecha_ingreso' => $input['fecha_ingreso'],
+                'fecha_acogida' => $input['fecha_acogida'],
+                'fecha_boda' => $input['fecha_boda'] ?? null,
                 'equipo_id' => $input['equipo_id'] ?? null,
                 'foto_path' => $parejaImages['original'],
                 'foto_thumbnail_50' => $parejaImages['50'],
@@ -76,6 +80,7 @@ class CreateNewPareja implements CreatesNewUsers
             $el = User::create([
                 'nombres' => $input['el_nombres'],
                 'apellidos' => $input['el_apellidos'],
+                'cedula' => $input['el_cedula'] ?? null,
                 'celular' => $input['el_celular'],
                 'fecha_nacimiento' => $input['el_fecha_nacimiento'],
                 'sexo' => 'masculino',
@@ -99,6 +104,7 @@ class CreateNewPareja implements CreatesNewUsers
             $ella = User::create([
                 'nombres' => $input['ella_nombres'],
                 'apellidos' => $input['ella_apellidos'],
+                'cedula' => $input['ella_cedula'] ?? null,
                 'celular' => $input['ella_celular'],
                 'fecha_nacimiento' => $input['ella_fecha_nacimiento'],
                 'sexo' => 'femenino',

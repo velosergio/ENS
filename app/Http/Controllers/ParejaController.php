@@ -58,8 +58,8 @@ class ParejaController extends Controller
             $query->buscar($request->buscar);
         }
 
-        // Ordenar por fecha de ingreso descendente
-        $parejas = $query->orderBy('fecha_ingreso', 'desc')
+        // Ordenar por fecha de acogida descendente
+        $parejas = $query->orderBy('fecha_acogida', 'desc')
             ->paginate(15)
             ->withQueryString()
             ->through(function ($pareja) {
@@ -73,7 +73,8 @@ class ParejaController extends Controller
                         'id' => $pareja->equipo->id,
                         'numero' => $pareja->equipo->numero,
                     ] : null,
-                    'fecha_ingreso' => $pareja->fecha_ingreso?->format('Y-m-d'),
+                    'fecha_acogida' => $pareja->fecha_acogida?->format('Y-m-d'),
+                    'fecha_boda' => $pareja->fecha_boda?->format('Y-m-d'),
                     'estado' => $pareja->estado,
                     'foto_thumbnail_50' => $pareja->foto_thumbnail_50_url,
                     'el' => $el ? [
@@ -81,6 +82,7 @@ class ParejaController extends Controller
                         'nombres' => $el->nombres,
                         'apellidos' => $el->apellidos,
                         'email' => $el->email,
+                        'cedula' => $el->cedula,
                         'celular' => $el->celular,
                         'fecha_nacimiento' => $el->fecha_nacimiento?->format('Y-m-d'),
                     ] : null,
@@ -89,6 +91,7 @@ class ParejaController extends Controller
                         'nombres' => $ella->nombres,
                         'apellidos' => $ella->apellidos,
                         'email' => $ella->email,
+                        'cedula' => $ella->cedula,
                         'celular' => $ella->celular,
                         'fecha_nacimiento' => $ella->fecha_nacimiento?->format('Y-m-d'),
                     ] : null,
@@ -146,7 +149,8 @@ class ParejaController extends Controller
 
             // Crear la pareja
             $pareja = Pareja::create([
-                'fecha_ingreso' => $request->fecha_ingreso,
+                'fecha_acogida' => $request->fecha_acogida,
+                'fecha_boda' => $request->fecha_boda ?? null,
                 'equipo_id' => $request->equipo_id,
                 'foto_path' => $parejaImages['original'],
                 'foto_thumbnail_50' => $parejaImages['50'],
@@ -165,6 +169,7 @@ class ParejaController extends Controller
             $el = User::create([
                 'nombres' => $request->el_nombres,
                 'apellidos' => $request->el_apellidos,
+                'cedula' => $request->el_cedula ?? null,
                 'celular' => $request->el_celular,
                 'fecha_nacimiento' => $request->el_fecha_nacimiento,
                 'sexo' => 'masculino',
@@ -188,6 +193,7 @@ class ParejaController extends Controller
             $ella = User::create([
                 'nombres' => $request->ella_nombres,
                 'apellidos' => $request->ella_apellidos,
+                'cedula' => $request->ella_cedula ?? null,
                 'celular' => $request->ella_celular,
                 'fecha_nacimiento' => $request->ella_fecha_nacimiento,
                 'sexo' => 'femenino',
@@ -234,7 +240,7 @@ class ParejaController extends Controller
         return Inertia::render('parejas/edit', [
             'pareja' => [
                 'id' => $pareja->id,
-                'fecha_ingreso' => $pareja->fecha_ingreso?->format('Y-m-d'),
+                'fecha_acogida' => $pareja->fecha_acogida?->format('Y-m-d'),
                 'equipo_id' => $pareja->equipo_id,
                 'equipo' => $pareja->equipo ? [
                     'id' => $pareja->equipo->id,
@@ -247,6 +253,7 @@ class ParejaController extends Controller
                     'nombres' => $el->nombres,
                     'apellidos' => $el->apellidos,
                     'email' => $el->email,
+                    'cedula' => $el->cedula,
                     'celular' => $el->celular,
                     'fecha_nacimiento' => $el->fecha_nacimiento?->format('Y-m-d'),
                     'foto_url' => $el->foto_url,
@@ -257,6 +264,7 @@ class ParejaController extends Controller
                     'nombres' => $ella->nombres,
                     'apellidos' => $ella->apellidos,
                     'email' => $ella->email,
+                    'cedula' => $ella->cedula,
                     'celular' => $ella->celular,
                     'fecha_nacimiento' => $ella->fecha_nacimiento?->format('Y-m-d'),
                     'foto_url' => $ella->foto_url,
@@ -282,7 +290,8 @@ class ParejaController extends Controller
 
             // Actualizar pareja
             $pareja->update([
-                'fecha_ingreso' => $request->fecha_ingreso,
+                'fecha_acogida' => $request->fecha_acogida,
+                'fecha_boda' => $request->fecha_boda ?? null,
                 'equipo_id' => $request->equipo_id,
                 'foto_path' => $parejaImages['original'],
                 'foto_thumbnail_50' => $parejaImages['50'],
@@ -303,6 +312,7 @@ class ParejaController extends Controller
                 $el->update([
                     'nombres' => $request->el_nombres,
                     'apellidos' => $request->el_apellidos,
+                    'cedula' => $request->el_cedula ?? null,
                     'celular' => $request->el_celular,
                     'fecha_nacimiento' => $request->el_fecha_nacimiento,
                     'email' => $request->el_email,
@@ -325,6 +335,7 @@ class ParejaController extends Controller
                 $ella->update([
                     'nombres' => $request->ella_nombres,
                     'apellidos' => $request->ella_apellidos,
+                    'cedula' => $request->ella_cedula ?? null,
                     'celular' => $request->ella_celular,
                     'fecha_nacimiento' => $request->ella_fecha_nacimiento,
                     'email' => $request->ella_email,
@@ -429,7 +440,8 @@ class ParejaController extends Controller
         return Inertia::render('settings/pareja', [
             'pareja' => [
                 'id' => $pareja->id,
-                'fecha_ingreso' => $pareja->fecha_ingreso?->format('Y-m-d'),
+                'fecha_acogida' => $pareja->fecha_acogida?->format('Y-m-d'),
+                'fecha_boda' => $pareja->fecha_boda?->format('Y-m-d'),
                 'equipo_id' => $pareja->equipo_id,
                 'equipo' => $pareja->equipo ? [
                     'id' => $pareja->equipo->id,
