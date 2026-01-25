@@ -222,7 +222,60 @@ El roadmap está dividido en 10 fases que implementan los módulos del sistema d
 
 ---
 
-## Fase 5: Módulo Notificaciones
+## Fase 5: Módulo Guía ENS (IA con RAG)
+
+**Objetivo:** Implementar chatbot con IA usando RAG para consultar la guía ENS desde PDFs.
+
+### Infraestructura Base:
+- [ ] Revisar y ajustar modelos según necesidades detectadas
+- [ ] Verificar estructura de almacenamiento de documentos
+- [ ] Actualizar migraciones si es necesario
+- [ ] Ajustar factories si hay cambios
+
+### Tareas:
+- [ ] Investigar e instalar librerías para RAG:
+  - Procesamiento de PDFs (spatie/pdf, etc.)
+  - Embeddings (OpenAI, DeepSeek compatible)
+  - Vector database (Pinecone, Weaviate, o SQL con pgvector)
+- [ ] Crear modelo `DocumentoGuia` con migración
+  - Campos: `titulo`, `archivo_path`, `procesado` (boolean), `created_at`
+- [ ] Crear modelo `Embedding` con migración (si se usa vector DB propio)
+  - Campos: `documento_id`, `contenido`, `embedding` (vector/json), `metadata` (json)
+- [ ] Crear servicio `RAGService`
+  - Método para procesar y fragmentar PDFs
+  - Método para generar embeddings
+  - Método para buscar documentos similares (semantic search)
+  - Método para generar respuesta usando IA
+- [ ] Crear servicio `AIService` (abstracción para proveedores)
+  - Configuración desde variables de entorno
+  - Compatible con DeepSeek y OpenAI
+  - Método para generar respuestas con contexto
+- [ ] Crear controlador `GuiaENSController`
+  - `index`: Página del chatbot
+  - `chat`: Endpoint para enviar pregunta y recibir respuesta
+  - `upload`: Subir PDFs de la guía (mango/admin)
+  - `process`: Procesar PDFs para RAG (mango/admin)
+- [ ] Páginas frontend:
+  - Interfaz de chatbot con historial
+  - FAQ's estáticas
+  - Panel de gestión de documentos (mango/admin)
+- [ ] Variables de entorno necesarias:
+  - `AI_PROVIDER` (deepseek/openai)
+  - `AI_API_KEY`
+  - `AI_MODEL`  
+- [ ] Agregar permisos `guia.*` al `PermissionService`
+- [ ] Tests básicos para RAG
+
+### Entregables:
+- Chatbot funcional con IA
+- Sistema RAG para consultar PDFs de la guía
+- Compatible con DeepSeek y OpenAI
+- FAQ's estáticas
+- Panel de gestión de documentos
+
+---
+
+## Fase 6: Módulo Notificaciones
 
 **Objetivo:** Implementar sistema de notificaciones en dashboard y preparar base para futuras extensiones.
 
@@ -270,7 +323,7 @@ El roadmap está dividido en 10 fases que implementan los módulos del sistema d
 
 ---
 
-## Fase 6: Módulo Eventos
+## Fase 7: Módulo Eventos
 
 **Objetivo:** Implementar gestión completa de eventos del movimiento ENS.
 
@@ -321,7 +374,7 @@ El roadmap está dividido en 10 fases que implementan los módulos del sistema d
 
 ---
 
-## Fase 7: Módulo Asistencia a Formación
+## Fase 8: Módulo Asistencia a Formación
 
 **Objetivo:** Implementar registro de asistencia a formaciones relacionadas con eventos.
 
@@ -364,7 +417,7 @@ El roadmap está dividido en 10 fases que implementan los módulos del sistema d
 
 ---
 
-## Fase 8: Módulo Auditoría (Registro de Acciones)
+## Fase 9: Módulo Auditoría (Registro de Acciones)
 
 **Objetivo:** Implementar sistema de registro de todas las acciones del sistema como base para otros módulos.
 
@@ -398,59 +451,6 @@ El roadmap está dividido en 10 fases que implementan los módulos del sistema d
 - Registro automático de acciones
 - Vista de auditoría para mango/admin
 - Búsqueda y filtros implementados
-
----
-
-## Fase 9: Módulo Guía ENS (IA con RAG)
-
-**Objetivo:** Implementar chatbot con IA usando RAG para consultar la guía ENS desde PDFs.
-
-### Infraestructura Base:
-- [ ] Revisar y ajustar modelos según necesidades detectadas
-- [ ] Verificar estructura de almacenamiento de documentos
-- [ ] Actualizar migraciones si es necesario
-- [ ] Ajustar factories si hay cambios
-
-### Tareas:
-- [ ] Investigar e instalar librerías para RAG:
-  - Procesamiento de PDFs (spatie/pdf, etc.)
-  - Embeddings (OpenAI, DeepSeek compatible)
-  - Vector database (Pinecone, Weaviate, o SQL con pgvector)
-- [ ] Crear modelo `DocumentoGuia` con migración
-  - Campos: `titulo`, `archivo_path`, `procesado` (boolean), `created_at`
-- [ ] Crear modelo `Embedding` con migración (si se usa vector DB propio)
-  - Campos: `documento_id`, `contenido`, `embedding` (vector/json), `metadata` (json)
-- [ ] Crear servicio `RAGService`
-  - Método para procesar y fragmentar PDFs
-  - Método para generar embeddings
-  - Método para buscar documentos similares (semantic search)
-  - Método para generar respuesta usando IA
-- [ ] Crear servicio `AIService` (abstracción para proveedores)
-  - Configuración desde variables de entorno
-  - Compatible con DeepSeek y OpenAI
-  - Método para generar respuestas con contexto
-- [ ] Crear controlador `GuiaENSController`
-  - `index`: Página del chatbot
-  - `chat`: Endpoint para enviar pregunta y recibir respuesta
-  - `upload`: Subir PDFs de la guía (mango/admin)
-  - `process`: Procesar PDFs para RAG (mango/admin)
-- [ ] Páginas frontend:
-  - Interfaz de chatbot con historial
-  - FAQ's estáticas
-  - Panel de gestión de documentos (mango/admin)
-- [ ] Variables de entorno necesarias:
-  - `AI_PROVIDER` (deepseek/openai)
-  - `AI_API_KEY`
-  - `AI_MODEL`
-- [ ] Agregar permisos `guia.*` al `PermissionService`
-- [ ] Tests básicos para RAG
-
-### Entregables:
-- Chatbot funcional con IA
-- Sistema RAG para consultar PDFs de la guía
-- Compatible con DeepSeek y OpenAI
-- FAQ's estáticas
-- Panel de gestión de documentos
 
 ---
 

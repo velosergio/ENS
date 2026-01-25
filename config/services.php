@@ -35,4 +35,9 @@ return [
         ],
     ],
 
+    'guia' => [
+        'webhook' => env('GUIA_WEBHOOK'),
+        'timeout' => env('GUIA_WEBHOOK_TIMEOUT', 30),
+    ],
+
 ];

@@ -33,12 +33,12 @@ Aplicación web para la gestión del movimiento "Equipos de Nuestra Señora" (EN
 - Funcionalidad de retiro y reactivación
 - Configuración de pareja propia desde settings
 
-#### ✅ Fase 2: Módulo Equipos
-- CRUD completo de equipos
-- Asignación de responsables con elevación automática de roles
-- Configuración de Padre Consiliario por equipo
-- Vista detalle con lista de parejas y usuarios
-- Búsqueda y filtros avanzados
+#### ✅ Fase 9: Módulo GUIA
+- Sistema de chatbot integrado con n8n mediante webhooks
+- Interfaz de chat simple e intuitiva
+- Comunicación síncrona con servidor n8n externo
+- Acceso exclusivo para usuarios con rol mango
+- Manejo de errores y timeouts configurables
 
 ### Sistema de Roles
 - **Mango**: Acceso completo al sistema
@@ -153,6 +153,65 @@ php artisan test --coverage
 - **Roadmap**: Ver `roadmap.md` para el plan de desarrollo por fases
 - **Change Notes**: Ver `changenotes.md` para el historial de cambios
 - **Laravel Boost**: Herramientas MCP disponibles para desarrollo
+
+### Sistema GUIA con n8n
+
+El módulo GUIA permite a los usuarios con rol "mango" realizar consultas mediante un chatbot que se comunica con un servidor n8n externo mediante webhooks.
+
+#### Configuración
+
+1. Agregar la variable de entorno en `.env`:
+```env
+GUIA_WEBHOOK=https://tu-servidor-n8n.com/webhook/guia
+GUIA_WEBHOOK_TIMEOUT=30
+```
+
+#### Formato de Petición
+
+El sistema envía una petición POST al webhook con el siguiente formato:
+
+```json
+{
+  "mensaje": "Texto de la pregunta del usuario",
+  "usuario": {
+    "id": 1,
+    "nombre": "Nombre Apellido",
+    "email": "usuario@example.com",
+    "rol": "mango"
+  },
+  "timestamp": "2026-01-24T10:30:00Z"
+}
+```
+
+#### Formato de Respuesta Esperado
+
+El webhook de n8n debe responder con:
+
+**Respuesta exitosa (200):**
+```json
+{
+  "respuesta": "Texto de la respuesta del sistema"
+}
+```
+
+**Respuesta con error:**
+```json
+{
+  "error": "Mensaje de error descriptivo"
+}
+```
+
+#### Workflow de ejemplo
+
+En la carpeta **`docs/`** se incluye un workflow de ejemplo (`n8n_workflow.json`) compatible con **n8n v2**. El flujo utiliza **Supabase** como base vectorial para consultar un **RAG** (Retrieval Augmented Generation): el agente consulta documentos oficiales de ENS almacenados en Supabase antes de responder. Puedes importarlo en n8n y ajustar credenciales (Supabase, OpenAI embeddings, modelo LLM) según tu entorno.
+
+#### Características
+
+- **Timeout configurable**: Por defecto 30 segundos (configurable con `GUIA_WEBHOOK_TIMEOUT`)
+- **Comunicación síncrona**: El sistema espera la respuesta del webhook antes de continuar
+- **Manejo de errores**: Errores de conexión y timeout se manejan adecuadamente
+- **Historial de conversación**: Los mensajes se mantienen en la sesión del navegador
+- **Acceso restringido**: Solo usuarios con rol "mango" pueden acceder al módulo
 
 ## 🎯 Próximas Fases
 

@@ -80,6 +80,12 @@ class PermissionService
             'view' => ['roles' => ['mango']],
             'update' => ['roles' => ['mango']],
         ],
+
+        // Módulo: GUIA
+        'guia' => [
+            'view' => ['roles' => ['mango']],
+            'chat' => ['roles' => ['mango']],
+        ],
     ];
 
     /**

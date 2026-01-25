@@ -186,6 +186,22 @@ Route::middleware(['auth', 'permission:equipos,view'])->group(function () {
         ->name('equipos.configurar-consiliario');
 });
 
+// Módulo GUIA (solo mango)
+Route::middleware(['auth', 'permission:guia,view'])->group(function () {
+    Route::get('guia', [\App\Http\Controllers\GuiaController::class, 'index'])
+        ->name('guia.index');
+
+    Route::post('guia/chat', [\App\Http\Controllers\GuiaController::class, 'chat'])
+        ->middleware('permission:guia,chat')
+        ->name('guia.chat');
+});
+
+// Panel de Salud del Sistema (todos los usuarios autenticados)
+Route::middleware(['auth'])->group(function () {
+    Route::get('health', [\App\Http\Controllers\HealthController::class, 'index'])
+        ->name('health.index');
+});
+
 // Módulo de Calendario (todos los usuarios autenticados)
 Route::middleware(['auth', 'permission:calendario,view'])->group(function () {
     Route::get('calendario', [\App\Http\Controllers\CalendarController::class, 'index'])->name('calendario.index');

@@ -1,5 +1,5 @@
 import { Link, usePage } from '@inertiajs/react';
-import { Calendar as CalendarIcon, Heart, LayoutGrid, UsersRound } from 'lucide-react';
+import { Activity, BookOpen, Calendar as CalendarIcon, Heart, LayoutGrid, UsersRound } from 'lucide-react';
 
 import { NavMain } from '@/components/nav-main';
 import { NavUser } from '@/components/nav-user';
@@ -15,6 +15,8 @@ import {
 import { dashboard } from '@/routes';
 import { index as calendarioIndex } from '@/routes/calendario';
 import { index as equiposIndex } from '@/routes/equipos';
+import { index as guiaIndex } from '@/routes/guia';
+import { index as healthIndex } from '@/routes/health';
 import { index as parejasIndex } from '@/routes/parejas';
 import { type NavItem, type SharedData } from '@/types';
 
@@ -47,6 +49,21 @@ export function AppSidebar() {
                       title: 'Equipos',
                       href: equiposIndex(),
                       icon: UsersRound,
+                  } as NavItem,
+              ]
+            : []),
+        // Mostrar GUIA y Salud solo si el usuario tiene rol mango
+        ...(auth.user && auth.user.rol === 'mango'
+            ? [
+                  {
+                      title: 'Guia',
+                      href: guiaIndex(),
+                      icon: BookOpen,
+                  } as NavItem,
+                  {
+                      title: 'Salud',
+                      href: healthIndex(),
+                      icon: Activity,
                   } as NavItem,
               ]
             : []),

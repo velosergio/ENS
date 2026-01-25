@@ -1,3 +1,4 @@
+import 'react';
 import { Form, Head } from '@inertiajs/react';
 
 import InputError from '@/components/input-error';
@@ -33,7 +34,13 @@ export default function Login({
                 resetOnSuccess={['password']}
                 className="flex flex-col gap-6"
             >
-                {({ processing, errors }) => (
+                {({
+                    processing,
+                    errors,
+                }: {
+                    processing: boolean;
+                    errors: Record<string, string>;
+                }) => (
                     <>
                         <div className="grid gap-6">
                             <div className="grid gap-2">
